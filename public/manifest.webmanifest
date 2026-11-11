@@ -1,0 +1,10 @@
+{
+  "name": "Scout-Up",
+  "short_name": "Scout-Up",
+  "description": "Presenze e uscite per unità scout",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#eef3ef",
+  "theme_color": "#1b5e3b",
+  "lang": "it"
+}
