@@ -75,14 +75,14 @@ export function LoginForm() {
 
   return (
     <form onSubmit={onSubmit} className="space-y-4">
-      <div className="flex gap-2 rounded-md bg-[var(--surface-muted)] p-1">
+      <div className="flex gap-1 rounded-md bg-[var(--surface-muted)] p-1">
         <button
           type="button"
           onClick={() => setMode("password")}
-          className={`flex-1 rounded-md px-3 py-2 text-sm font-medium ${
+          className={`flex-1 rounded-md px-3 py-2 text-sm font-medium transition ${
             mode === "password"
-              ? "bg-white text-[var(--ink)] shadow-sm"
-              : "text-[var(--muted)]"
+              ? "bg-[var(--surface)] text-[var(--ink)] shadow-sm"
+              : "text-[var(--muted)] hover:text-[var(--ink)]"
           }`}
         >
           Email e password
@@ -90,10 +90,10 @@ export function LoginForm() {
         <button
           type="button"
           onClick={() => setMode("magic")}
-          className={`flex-1 rounded-md px-3 py-2 text-sm font-medium ${
+          className={`flex-1 rounded-md px-3 py-2 text-sm font-medium transition ${
             mode === "magic"
-              ? "bg-white text-[var(--ink)] shadow-sm"
-              : "text-[var(--muted)]"
+              ? "bg-[var(--surface)] text-[var(--ink)] shadow-sm"
+              : "text-[var(--muted)] hover:text-[var(--ink)]"
           }`}
         >
           Magic link
@@ -138,7 +138,7 @@ export function LoginForm() {
       <button
         type="submit"
         disabled={loading}
-        className="w-full rounded-md bg-[var(--forest)] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[var(--forest-deep)] disabled:opacity-60"
+        className="w-full rounded-md bg-[var(--navy)] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[var(--navy-deep)] disabled:opacity-60"
       >
         {loading ? "Attendere…" : mode === "magic" ? "Invia magic link" : "Accedi"}
       </button>
