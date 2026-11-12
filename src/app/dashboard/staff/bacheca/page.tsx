@@ -68,7 +68,7 @@ export default async function StaffBachecaPage() {
         <p className="mb-4 rounded-md border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-950">
           Schema bacheca non disponibile sul database ({schemaError}). Applica
           la migration{" "}
-          <code className="text-xs">20261112_fase5_bacheca_cassa.sql</code> via
+          <code className="text-xs">20261112050000_fase5_bacheca_cassa.sql</code> via
           pooler.
         </p>
       ) : null}

@@ -36,7 +36,7 @@ export default function SetupPage() {
         <li className="rounded-lg border border-[var(--border)] bg-white p-4">
           <strong>2.</strong> Apri <em>SQL Editor</em> e esegui la migration{" "}
           <code className="rounded bg-[var(--surface-muted)] px-1">
-            supabase/migrations/20261111_scout_up_mvp.sql
+            supabase/migrations/20261111000000_scout_up_mvp.sql
           </code>
           .
         </li>
