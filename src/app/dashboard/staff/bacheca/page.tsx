@@ -17,26 +17,30 @@ export default async function StaffBachecaPage() {
     "leader",
   ]);
 
-  const [{ data: announcements }, { data: subgroups }, { data: acks }] =
-    await Promise.all([
-      profile.unit_id
-        ? supabase
-            .from("announcements")
-            .select(
-              "id, title, body, audience, subgroup_id, created_at, created_by",
-            )
-            .eq("unit_id", profile.unit_id)
-            .order("created_at", { ascending: false })
-        : Promise.resolve({ data: [] }),
-      profile.unit_id
-        ? supabase
-            .from("subgroups")
-            .select("id, name")
-            .eq("unit_id", profile.unit_id)
-            .order("name")
-        : Promise.resolve({ data: [] }),
-      supabase.from("announcement_acks").select("announcement_id, user_id"),
-    ]);
+  const [annRes, subRes, ackRes] = await Promise.all([
+    profile.unit_id
+      ? supabase
+          .from("announcements")
+          .select(
+            "id, title, body, audience, subgroup_id, created_at, created_by",
+          )
+          .eq("unit_id", profile.unit_id)
+          .order("created_at", { ascending: false })
+      : Promise.resolve({ data: [], error: null }),
+    profile.unit_id
+      ? supabase
+          .from("subgroups")
+          .select("id, name")
+          .eq("unit_id", profile.unit_id)
+          .order("name")
+      : Promise.resolve({ data: [], error: null }),
+    supabase.from("announcement_acks").select("announcement_id, user_id"),
+  ]);
+
+  const announcements = annRes.data;
+  const subgroups = subRes.data;
+  const acks = ackRes.data;
+  const schemaError = annRes.error?.message ?? null;
 
   const subgroupName = new Map(
     (subgroups ?? []).map((s) => [s.id, s.name] as const),
@@ -60,6 +64,14 @@ export default async function StaffBachecaPage() {
       activeRole={activeRole}
       roles={roles}
     >
+      {schemaError ? (
+        <p className="mb-4 rounded-md border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-950">
+          Schema bacheca non disponibile sul database ({schemaError}). Applica
+          la migration{" "}
+          <code className="text-xs">20261112_fase5_bacheca_cassa.sql</code> via
+          pooler.
+        </p>
+      ) : null}
       <form
         action={createAnnouncementAction}
         className="mb-8 max-w-2xl space-y-4 rounded-xl border border-[var(--border)] bg-white p-5"
