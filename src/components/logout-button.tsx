@@ -13,11 +13,14 @@ export function LogoutButton() {
     setLoading(true);
     try {
       if (isSupabaseConfigured()) {
-        const supabase = createClient();
-        await supabase.auth.signOut();
+        try {
+          const supabase = createClient();
+          await supabase.auth.signOut();
+        } catch {
+          // Continua comunque verso /login
+        }
       }
-      router.push("/login");
-      router.refresh();
+      window.location.href = "/login";
     } finally {
       setLoading(false);
     }

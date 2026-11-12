@@ -19,12 +19,14 @@ export function SidebarNav({ items }: { items: NavItem[] }) {
   return (
     <nav className="space-y-1">
       {unique.map((item) => {
-        const active =
-          pathname === item.href ||
-          (item.href !== "/dashboard/staff" &&
-            item.href !== "/dashboard/parent" &&
-            item.href !== "/dashboard/member" &&
-            pathname.startsWith(item.href));
+        const exactRoots = new Set([
+          "/dashboard/staff",
+          "/dashboard/parent",
+          "/dashboard/member",
+        ]);
+        const active = exactRoots.has(item.href)
+          ? pathname === item.href
+          : pathname === item.href || pathname.startsWith(`${item.href}/`);
 
         return (
           <Link
