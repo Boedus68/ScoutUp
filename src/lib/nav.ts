@@ -9,6 +9,7 @@ export function navItemsForRole(role: AppRole): NavItem[] {
         { href: "/dashboard/staff/events/new", label: "Nuova uscita" },
         { href: "/dashboard/staff/unita", label: "Unità" },
         { href: "/dashboard/staff/anagrafica", label: "Anagrafica" },
+        { href: "/dashboard/staff/progressione", label: "Progressione" },
         { href: "/dashboard/staff/fascicolo-sicurezza", label: "Fascicolo sicurezza" },
       ];
     case "parent":
@@ -20,6 +21,7 @@ export function navItemsForRole(role: AppRole): NavItem[] {
     case "member":
       return [
         { href: "/dashboard/member", label: "Calendario" },
+        { href: "/dashboard/member/progressione", label: "Progressione" },
         { href: "/dashboard/member/profilo", label: "Il mio profilo" },
       ];
     default:

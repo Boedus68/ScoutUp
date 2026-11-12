@@ -85,6 +85,46 @@ export type MedicalRecord = {
   updated_at?: string;
 };
 
+export type ProgressionKind = "tappa" | "specialita" | "brevetto" | "punto_strada";
+export type ProgressionStatus =
+  | "in_progress"
+  | "requested"
+  | "conquered"
+  | "rejected";
+
+export type ProgressionCatalogItem = {
+  id: string;
+  branch: ScoutBranch;
+  kind: ProgressionKind;
+  code: string | null;
+  title: string;
+  description: string | null;
+  sort_order: number;
+};
+
+export type ProgressionItem = {
+  id: string;
+  member_id: string;
+  catalog_id: string | null;
+  branch: ScoutBranch;
+  kind: ProgressionKind;
+  title: string;
+  status: ProgressionStatus;
+  staff_comment: string | null;
+  requested_at: string | null;
+  decided_at: string | null;
+  decided_by: string | null;
+  assigned_by: string | null;
+};
+
+export type StaffNote = {
+  id: string;
+  member_id: string;
+  author_id: string;
+  body: string;
+  created_at?: string;
+};
+
 export type NavItem = {
   href: string;
   label: string;

@@ -5,6 +5,8 @@ import type {
   ConfirmationStatus,
   EventType,
   PaymentStatus,
+  ProgressionKind,
+  ProgressionStatus,
   ScoutBranch,
 } from "@/lib/types";
 
@@ -60,6 +62,46 @@ export const eventTypeOptions: EventType[] = [
   "route",
   "council",
 ];
+
+export const progressionKindLabel: Record<ProgressionKind, string> = {
+  tappa: "Tappa",
+  specialita: "Specialità",
+  brevetto: "Brevetto",
+  punto_strada: "Punto strada",
+};
+
+export const progressionStatusLabel: Record<ProgressionStatus, string> = {
+  in_progress: "In corso",
+  requested: "Richiesta",
+  conquered: "Conquistata",
+  rejected: "Rifiutata",
+};
+
+export function progressionKindsForBranch(branch: ScoutBranch): ProgressionKind[] {
+  switch (branch) {
+    case "LC":
+      return ["tappa", "specialita"];
+    case "EG":
+      return ["tappa", "brevetto", "specialita"];
+    case "RS":
+      return ["punto_strada", "specialita"];
+    default:
+      return ["tappa", "specialita"];
+  }
+}
+
+export function progressionPathTitle(branch: ScoutBranch) {
+  switch (branch) {
+    case "LC":
+      return "Sentiero LC";
+    case "EG":
+      return "Progressione EG";
+    case "RS":
+      return "Strada RS";
+    default:
+      return "Progressione";
+  }
+}
 
 export function formatDateTime(iso: string) {
   return new Intl.DateTimeFormat("it-IT", {
