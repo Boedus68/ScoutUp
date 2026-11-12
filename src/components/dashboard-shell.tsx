@@ -40,13 +40,17 @@ export function DashboardShell({
                   height={36}
                   className="transition duration-300 group-hover:rotate-12"
                 />
-                <span className="font-display text-xl tracking-tight text-[var(--forest)]">
+                <span className="font-display text-xl tracking-tight text-[var(--navy)]">
                   Scout-Up
                 </span>
               </Link>
               <p className="mt-2 text-xs font-medium uppercase tracking-[0.14em] text-[var(--muted)]">
                 {roleLabel[activeRole]}
               </p>
+              <div
+                className="uniform-stripe mt-3 h-1 w-full rounded-sm"
+                aria-hidden="true"
+              />
             </div>
 
             <SidebarNav items={items} />
@@ -61,10 +65,10 @@ export function DashboardShell({
         <div className="min-w-0 flex-1">
           <header className="relative overflow-hidden border-b border-[var(--border)] bg-[var(--surface)]/95 px-4 py-4 backdrop-blur-sm sm:px-6">
             <div
-              className="pointer-events-none absolute inset-y-0 right-0 w-1/2 opacity-40"
+              className="pointer-events-none absolute inset-y-0 right-0 w-1/2 opacity-45"
               style={{
                 background:
-                  "radial-gradient(420px 120px at 100% 0%, rgba(91,143,173,0.22), transparent 70%)",
+                  "radial-gradient(420px 120px at 100% 0%, rgba(106,169,208,0.28), transparent 70%)",
               }}
             />
             <div className="relative flex items-center justify-between gap-3">

@@ -34,7 +34,7 @@ export function SidebarNav({ items }: { items: NavItem[] }) {
             href={item.href}
             className={`block rounded-md px-3 py-2 text-sm font-medium transition duration-200 ${
               active
-                ? "bg-[var(--forest)] text-white shadow-sm"
+                ? "bg-[var(--navy)] text-white shadow-sm"
                 : "text-[var(--ink)] hover:bg-[var(--surface)] hover:translate-x-0.5"
             }`}
           >

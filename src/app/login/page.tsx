@@ -13,18 +13,18 @@ export default function LoginPage() {
       <div className="mx-auto grid w-full max-w-5xl flex-1 items-stretch gap-0 px-4 py-8 sm:px-6 lg:grid-cols-2 lg:gap-10 lg:py-12">
         <aside className="relative hidden overflow-hidden rounded-2xl border border-[var(--border)] lg:block">
           <Image
-            src="/images/lake-camp.jpg"
-            alt="Tende scout vicino al lago"
+            src="/images/scouts-uniform.svg"
+            alt="Illustrazione originale scout in divisa celeste e blu"
             fill
             priority
             sizes="(min-width: 1024px) 40vw, 100vw"
-            className="object-cover"
+            className="object-cover object-top"
           />
           <div
             className="absolute inset-0"
             style={{
               background:
-                "linear-gradient(180deg, rgba(19,36,24,0.15) 0%, rgba(19,36,24,0.72) 100%)",
+                "linear-gradient(180deg, rgba(18,28,51,0.05) 0%, rgba(18,28,51,0.78) 100%)",
             }}
           />
           <div className="absolute inset-x-0 bottom-0 p-8 text-white">
@@ -45,7 +45,7 @@ export default function LoginPage() {
         <div className="flex flex-1 flex-col justify-center py-4 lg:py-0">
           <Link
             href="/"
-            className="inline-flex w-fit items-center gap-2 text-sm font-semibold text-[var(--forest)] transition hover:text-[var(--forest-deep)]"
+            className="inline-flex w-fit items-center gap-2 text-sm font-semibold text-[var(--navy)] transition hover:text-[var(--celeste)]"
           >
             ← Torna a Scout-Up
           </Link>
@@ -66,22 +66,25 @@ export default function LoginPage() {
             alla dashboard del tuo ruolo.
           </p>
 
-          <div className="mt-8 rounded-xl border border-[var(--border)] bg-[var(--surface)]/95 p-5 shadow-[var(--shadow-soft)] backdrop-blur-sm sm:p-6">
-            {configured ? (
-              <LoginForm />
-            ) : (
-              <div className="space-y-3 text-sm text-[var(--muted)]">
-                <p>
-                  Il form di login è disabilitato finché non configuri Supabase.
-                </p>
-                <Link
-                  href="/setup"
-                  className="inline-flex rounded-md bg-[var(--forest)] px-4 py-2 font-semibold text-white transition hover:bg-[var(--forest-deep)]"
-                >
-                  Apri setup
-                </Link>
-              </div>
-            )}
+          <div className="mt-8 overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--surface)]/95 shadow-[var(--shadow-soft)] backdrop-blur-sm">
+            <div className="uniform-stripe h-1.5 w-full" aria-hidden="true" />
+            <div className="p-5 sm:p-6">
+              {configured ? (
+                <LoginForm />
+              ) : (
+                <div className="space-y-3 text-sm text-[var(--muted)]">
+                  <p>
+                    Il form di login è disabilitato finché non configuri Supabase.
+                  </p>
+                  <Link
+                    href="/setup"
+                    className="inline-flex rounded-md bg-[var(--navy)] px-4 py-2 font-semibold text-white transition hover:bg-[var(--navy-deep)]"
+                  >
+                    Apri setup
+                  </Link>
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="mt-8 overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--surface-muted)]">
@@ -90,7 +93,7 @@ export default function LoginPage() {
               alt=""
               width={960}
               height={420}
-              className="h-28 w-full object-cover object-bottom opacity-90 sm:h-32"
+              className="h-28 w-full object-cover object-bottom opacity-95 sm:h-32"
             />
           </div>
         </div>

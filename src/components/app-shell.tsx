@@ -22,7 +22,7 @@ export function AppShell({ title, subtitle, children, nav }: AppShellProps) {
                 width={32}
                 height={32}
               />
-              <span className="font-display text-xl tracking-tight text-[var(--forest)]">
+              <span className="font-display text-xl tracking-tight text-[var(--navy)]">
                 Scout-Up
               </span>
             </Link>

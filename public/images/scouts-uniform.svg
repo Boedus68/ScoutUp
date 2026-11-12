@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 960" fill="none" aria-hidden="true">
+  <defs>
+    <linearGradient id="panelSky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#8fbfdc"/>
+      <stop offset="55%" stop-color="#d2e6f0"/>
+      <stop offset="100%" stop-color="#e7f0ea"/>
+    </linearGradient>
+    <linearGradient id="uShirt" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#a4d4ec"/>
+      <stop offset="100%" stop-color="#6aa9d0"/>
+    </linearGradient>
+    <linearGradient id="uShorts" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#2a3d63"/>
+      <stop offset="100%" stop-color="#1b2a4a"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="720" height="960" fill="url(#panelSky)"/>
+  <path d="M0 620 C120 580 220 660 360 610 C500 560 600 650 720 600 L720 960 L0 960 Z" fill="#2f6b4a"/>
+  <path d="M0 740 C160 710 280 780 420 740 C560 700 640 760 720 730 L720 960 L0 960 Z" fill="#1a4a32"/>
+
+  <!-- single scout figure, clear uniform read -->
+  <g transform="translate(250,120)">
+    <circle cx="110" cy="70" r="52" fill="#e0b48a"/>
+    <path d="M66 58 C80 28 140 28 154 58" fill="#3a2a1a"/>
+    <!-- fazzolettone -->
+    <path d="M74 120 L110 178 L146 120 Z" fill="#2f6b4a"/>
+    <path d="M88 120 L110 160 L132 120 Z" fill="#d4a017"/>
+    <circle cx="110" cy="182" r="10" fill="#d4a017"/>
+    <!-- shirt -->
+    <path d="M48 132 C36 220 34 320 48 390 L172 390 C186 320 184 220 172 132 Z" fill="url(#uShirt)"/>
+    <path d="M110 132 L110 370" stroke="#5a96b8" stroke-width="3" opacity="0.45"/>
+    <!-- pockets -->
+    <rect x="62" y="250" width="34" height="28" rx="3" stroke="#5a96b8" stroke-width="2" fill="none" opacity="0.6"/>
+    <rect x="124" y="250" width="34" height="28" rx="3" stroke="#5a96b8" stroke-width="2" fill="none" opacity="0.6"/>
+    <!-- sleeves -->
+    <path d="M48 150 L12 270 L42 282 Z" fill="#6aa9d0"/>
+    <path d="M172 150 L208 270 L178 282 Z" fill="#6aa9d0"/>
+    <ellipse cx="8" cy="280" rx="16" ry="22" fill="#e0b48a"/>
+    <ellipse cx="212" cy="280" rx="16" ry="22" fill="#e0b48a"/>
+    <!-- belt -->
+    <rect x="48" y="372" width="124" height="18" rx="3" fill="#1b2a4a"/>
+    <rect x="98" y="375" width="24" height="12" rx="2" fill="#d4a017"/>
+    <!-- velvet shorts -->
+    <path d="M48 390 L48 510 L104 510 L110 410 L116 510 L172 510 L172 390 Z" fill="url(#uShorts)"/>
+    <!-- legs -->
+    <path d="M62 510 L62 620 L92 620 L92 510 Z" fill="#e0b48a"/>
+    <path d="M128 510 L128 620 L158 620 L158 510 Z" fill="#e0b48a"/>
+    <!-- blue knee socks -->
+    <path d="M62 560 L62 640 L92 640 L92 560 Z" fill="#3a5f8a"/>
+    <path d="M128 560 L128 640 L158 640 L158 560 Z" fill="#3a5f8a"/>
+    <path d="M62 560 L92 560" stroke="#2a4a6e" stroke-width="3"/>
+    <path d="M128 560 L158 560" stroke="#2a4a6e" stroke-width="3"/>
+    <!-- shoes -->
+    <ellipse cx="77" cy="648" rx="24" ry="12" fill="#1b2a4a"/>
+    <ellipse cx="143" cy="648" rx="24" ry="12" fill="#1b2a4a"/>
+  </g>
+</svg>

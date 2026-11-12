@@ -11,21 +11,21 @@ export default function HomePage() {
       {!configured ? <SetupBanner /> : null}
 
       <section className="relative isolate flex min-h-[100svh] flex-1 overflow-hidden">
-        <div className="absolute inset-0 -z-20 overflow-hidden">
+        <div className="absolute inset-0 -z-20 overflow-hidden bg-[var(--celeste-soft)]">
           <Image
-            src="/images/hero-camp.jpg"
-            alt="Campo scout con tende al tramonto"
+            src="/images/hero-scouts.svg"
+            alt="Illustrazione originale di scout in camicia celeste, pantaloncini blu e fazzolettone"
             fill
             priority
             sizes="100vw"
-            className="hero-kenburns object-cover object-center"
+            className="hero-kenburns object-cover object-[70%_center] sm:object-center"
           />
         </div>
         <div
           className="absolute inset-0 -z-10"
           style={{
             background:
-              "linear-gradient(105deg, rgba(19, 36, 24, 0.78) 0%, rgba(19, 36, 24, 0.55) 42%, rgba(19, 36, 24, 0.28) 100%)",
+              "linear-gradient(105deg, rgba(18, 28, 51, 0.72) 0%, rgba(18, 28, 51, 0.42) 48%, rgba(18, 28, 51, 0.12) 100%)",
           }}
         />
 
@@ -34,7 +34,7 @@ export default function HomePage() {
             <p className="motion-rise font-display text-5xl leading-none tracking-tight sm:text-6xl md:text-7xl lg:text-8xl">
               Scout-Up
             </p>
-            <h1 className="motion-rise-delay mt-5 max-w-xl font-display text-2xl leading-snug tracking-tight text-[#f4f7f4] sm:text-3xl md:text-4xl">
+            <h1 className="motion-rise-delay mt-5 max-w-xl font-display text-2xl leading-snug tracking-tight text-[#eef4f8] sm:text-3xl md:text-4xl">
               Presenze e uscite per la tua unità.
             </h1>
             <p className="motion-rise-delay-2 mt-4 max-w-lg text-base leading-relaxed text-white/85 sm:text-lg">
@@ -60,6 +60,7 @@ export default function HomePage() {
       </section>
 
       <section className="topo-bg border-t border-[var(--border)]">
+        <div className="uniform-stripe h-1.5 w-full" aria-hidden="true" />
         <div className="mx-auto grid w-full max-w-6xl gap-10 px-5 py-14 sm:px-8 lg:grid-cols-2 lg:items-center lg:gap-14">
           <div className="motion-fade">
             <h2 className="font-display text-3xl tracking-tight text-[var(--ink)] sm:text-4xl">
@@ -72,11 +73,11 @@ export default function HomePage() {
             </p>
           </div>
           <Image
-            src="/images/forest-path.jpg"
-            alt="Sentiero nel bosco"
-            width={1600}
-            height={1066}
-            className="h-56 w-full object-cover sm:h-72 lg:h-80"
+            src="/images/scouts-uniform.svg"
+            alt="Illustrazione originale della divisa: camicia celeste, pantaloncini blu, calzettoni e fazzolettone"
+            width={720}
+            height={960}
+            className="h-64 w-full object-cover object-top sm:h-80 lg:h-[22rem]"
           />
         </div>
       </section>

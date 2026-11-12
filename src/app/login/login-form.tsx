@@ -138,7 +138,7 @@ export function LoginForm() {
       <button
         type="submit"
         disabled={loading}
-        className="w-full rounded-md bg-[var(--forest)] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[var(--forest-deep)] disabled:opacity-60"
+        className="w-full rounded-md bg-[var(--navy)] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[var(--navy-deep)] disabled:opacity-60"
       >
         {loading ? "Attendere…" : mode === "magic" ? "Invia magic link" : "Accedi"}
       </button>
