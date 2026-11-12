@@ -20,6 +20,21 @@ export const roleLabel: Record<AppRole, string> = {
   parent: "Genitore",
 };
 
+/** Etichette corte per lo switcher di contesto. */
+export const roleSwitcherLabel: Record<AppRole, string> = {
+  leader: "Capo",
+  member: "Ragazzo",
+  parent: "Genitore",
+};
+
+/** Ordine stabile nello switcher: Capo → Ragazzo → Genitore. */
+export const appRoleOrder: AppRole[] = ["leader", "member", "parent"];
+
+export function sortAppRoles(roles: AppRole[]): AppRole[] {
+  const unique = [...new Set(roles)];
+  return appRoleOrder.filter((role) => unique.includes(role));
+}
+
 export const branchLabel: Record<ScoutBranch, string> = {
   LC: "LC — Lupetti / Coccinelle",
   EG: "EG — Esploratori / Guide",
