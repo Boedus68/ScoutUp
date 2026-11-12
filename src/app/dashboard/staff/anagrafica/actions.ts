@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { requireRole } from "@/lib/auth";
 import type { CensusRow } from "@/lib/csv-census";
+import { staffUnitId } from "@/lib/staff-unit";
 
 export type ImportRowResult = {
   rowNumber: number;
@@ -14,10 +15,10 @@ export async function importCensusAction(rows: CensusRow[]): Promise<{
   results: ImportRowResult[];
 }> {
   const { profile, supabase } = await requireRole(["leader"]);
-  if (!profile.unit_id) {
+  if (!staffUnitId(profile)) {
     throw new Error("Capo senza unità.");
   }
-  const unitId = profile.unit_id;
+  const unitId = staffUnitId(profile);
   const results: ImportRowResult[] = [];
 
   // Load existing subgroups once

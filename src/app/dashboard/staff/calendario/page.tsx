@@ -1,34 +1,50 @@
 import Link from "next/link";
 import { connection } from "next/server";
-import { DashboardShell } from "@/components/dashboard-shell";
+import { StaffShell } from "@/components/staff-shell";
 import { requireRole } from "@/lib/auth";
-import { eventTypeLabel, formatDateTime, formatEuro } from "@/lib/labels";
+import {
+  cocaEventTypeLabel,
+  eventTypeLabel,
+  formatDateTime,
+  formatEuro,
+} from "@/lib/labels";
 import type { EventType } from "@/lib/types";
+import { isCocaUnit, staffUnitId } from "@/lib/staff-unit";
 
 export default async function StaffCalendarioPage() {
   await connection();
-  const { profile, unit, roles, activeRole, supabase } = await requireRole([
-    "leader",
-  ]);
+  const { profile, unit, roles, activeRole, supabase, availableUnits } =
+    await requireRole(["leader"]);
+
+  const coca = isCocaUnit(unit);
+  const typeLabel = coca ? cocaEventTypeLabel : eventTypeLabel;
 
   const { data: events } = await supabase
     .from("events")
-    .select("id, title, starts_at, location, event_type, fee_amount")
-    .eq("unit_id", profile.unit_id ?? "")
+    .select("id, title, starts_at, location, event_type, fee_amount, description")
+    .eq("unit_id", staffUnitId(profile) ?? "")
     .order("starts_at", { ascending: true });
 
   return (
-    <DashboardShell
-      title="Calendario"
-      subtitle={unit ? unit.name : "Uscite e attività"}
+    <StaffShell
+      title={coca ? "Appuntamenti di Co.Ca." : "Calendario"}
+      subtitle={
+        unit
+          ? coca
+            ? "Riunioni, uscite, consigli e formazione"
+            : unit.name
+          : "Uscite e attività"
+      }
       activeRole={activeRole}
       roles={roles}
+      unit={unit}
+      availableUnits={availableUnits}
       headerActions={
         <Link
           href="/dashboard/staff/events/new"
           className="rounded-md bg-[var(--forest)] px-3 py-1.5 text-sm font-semibold text-white"
         >
-          Nuova uscita
+          {coca ? "Nuovo appuntamento" : "Nuova uscita"}
         </Link>
       }
     >
@@ -39,7 +55,8 @@ export default async function StaffCalendarioPage() {
           </li>
         ) : (
           (events ?? []).map((event) => {
-            const type = (event.event_type as EventType | undefined) ?? "meeting";
+            const type =
+              (event.event_type as EventType | undefined) ?? "meeting";
             return (
               <li key={event.id}>
                 <Link
@@ -49,12 +66,17 @@ export default async function StaffCalendarioPage() {
                   <div>
                     <p className="font-semibold">{event.title}</p>
                     <p className="text-sm text-[var(--muted)]">
-                      {eventTypeLabel[type]} · {formatDateTime(event.starts_at)}
+                      {typeLabel[type]} · {formatDateTime(event.starts_at)}
                       {event.location ? ` · ${event.location}` : ""}
-                      {event.fee_amount != null
+                      {!coca && event.fee_amount != null
                         ? ` · Quota ${formatEuro(event.fee_amount)}`
                         : ""}
                     </p>
+                    {coca && event.description ? (
+                      <p className="mt-1 text-sm text-[var(--ink)]/80">
+                        Verbale / note: {event.description}
+                      </p>
+                    ) : null}
                   </div>
                   <span className="text-sm font-medium text-[var(--forest)]">
                     Registro →
@@ -65,6 +87,6 @@ export default async function StaffCalendarioPage() {
           })
         )}
       </ul>
-    </DashboardShell>
+    </StaffShell>
   );
 }

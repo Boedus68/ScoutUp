@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireRole } from "@/lib/auth";
 import type { AttendanceStatus, EventType, PaymentStatus } from "@/lib/types";
+import { staffUnitId } from "@/lib/staff-unit";
 
 const eventTypes: EventType[] = [
   "meeting",
@@ -11,12 +12,13 @@ const eventTypes: EventType[] = [
   "camp",
   "route",
   "council",
+  "formation",
 ];
 
 export async function createEventAction(formData: FormData) {
   const { profile, supabase } = await requireRole(["leader"]);
 
-  if (!profile.unit_id) {
+  if (!staffUnitId(profile)) {
     throw new Error("Il profilo capo non ha un'unità assegnata.");
   }
 
@@ -42,7 +44,7 @@ export async function createEventAction(formData: FormData) {
   const { data, error } = await supabase
     .from("events")
     .insert({
-      unit_id: profile.unit_id,
+      unit_id: staffUnitId(profile),
       title,
       starts_at: new Date(startsAt).toISOString(),
       ends_at: endsAtRaw ? new Date(endsAtRaw).toISOString() : null,

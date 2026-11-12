@@ -1,5 +1,5 @@
 import { connection } from "next/server";
-import { DashboardShell } from "@/components/dashboard-shell";
+import { StaffShell } from "@/components/staff-shell";
 import { requireRole } from "@/lib/auth";
 import {
   cashEntryKindLabel,
@@ -9,6 +9,7 @@ import {
   formatEuro,
 } from "@/lib/labels";
 import type { CashEntryKind, FeeStatus } from "@/lib/types";
+import { isCocaUnit, staffUnitId } from "@/lib/staff-unit";
 import {
   createAnnualFeeAction,
   createCashEntryAction,
@@ -18,36 +19,36 @@ import {
 
 export default async function StaffCassaPage() {
   await connection();
-  const { profile, unit, roles, activeRole, supabase } = await requireRole([
-    "leader",
-  ]);
+  const { profile, unit, roles, activeRole, supabase, availableUnits } =
+    await requireRole(["leader"]);
+  const coca = isCocaUnit(unit);
 
   const [{ data: members }, { data: fees }, { data: entries }] =
     await Promise.all([
-      profile.unit_id
+      staffUnitId(profile)
         ? supabase
             .from("profiles")
             .select("id, full_name, totem")
-            .eq("unit_id", profile.unit_id)
+            .eq("unit_id", staffUnitId(profile))
             .eq("role", "member")
             .order("full_name")
         : Promise.resolve({ data: [] }),
-      profile.unit_id
+      staffUnitId(profile)
         ? supabase
             .from("annual_fees")
             .select(
               "id, member_id, title, amount, due_date, status, notes, created_at",
             )
-            .eq("unit_id", profile.unit_id)
+            .eq("unit_id", staffUnitId(profile))
             .order("created_at", { ascending: false })
         : Promise.resolve({ data: [] }),
-      profile.unit_id
+      staffUnitId(profile)
         ? supabase
             .from("cash_entries")
             .select(
               "id, kind, title, amount, receipt_url, member_id, notes, created_at",
             )
-            .eq("unit_id", profile.unit_id)
+            .eq("unit_id", staffUnitId(profile))
             .order("created_at", { ascending: false })
         : Promise.resolve({ data: [] }),
     ]);
@@ -67,15 +68,19 @@ export default async function StaffCassaPage() {
   }, 0);
 
   return (
-    <DashboardShell
-      title="Cassa / Economato"
+    <StaffShell
+      title={coca ? "Cassa di Gruppo" : "Cassa / Economato"}
       subtitle={
         unit
-          ? `Quote e movimenti · ${unit.name}`
+          ? coca
+            ? `Economato Co.Ca. · ${unit.name}`
+            : `Quote e movimenti · ${unit.name}`
           : "Quote annuali, spese e rimborsi"
       }
       activeRole={activeRole}
       roles={roles}
+      unit={unit}
+      availableUnits={availableUnits}
     >
       <div className="mb-8 grid gap-4 sm:grid-cols-2">
         <div className="rounded-xl border border-[var(--border)] bg-white px-4 py-4">
@@ -341,6 +346,6 @@ export default async function StaffCassaPage() {
           )}
         </ul>
       </section>
-    </DashboardShell>
+    </StaffShell>
   );
 }

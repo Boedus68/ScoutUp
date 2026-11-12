@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { connection } from "next/server";
 import { notFound } from "next/navigation";
-import { DashboardShell } from "@/components/dashboard-shell";
+import { StaffShell } from "@/components/staff-shell";
 import { ProgressionPath } from "@/components/progression-path";
 import { requireRole } from "@/lib/auth";
 import {
@@ -17,6 +17,7 @@ import type {
   ProgressionKind,
   StaffNote,
 } from "@/lib/types";
+import { staffUnitId } from "@/lib/staff-unit";
 import {
   AssignControls,
   DecideControls,
@@ -30,7 +31,7 @@ type PageProps = {
 export default async function StaffMemberProgressionePage({ params }: PageProps) {
   await connection();
   const { memberId } = await params;
-  const { profile, unit, roles, activeRole, supabase } = await requireRole([
+  const { profile, unit, roles, activeRole, supabase, availableUnits} = await requireRole([
     "leader",
   ]);
 
@@ -43,7 +44,7 @@ export default async function StaffMemberProgressionePage({ params }: PageProps)
   if (
     !member ||
     member.role !== "member" ||
-    member.unit_id !== profile.unit_id ||
+    member.unit_id !== staffUnitId(profile) ||
     !unit
   ) {
     notFound();
@@ -74,13 +75,15 @@ export default async function StaffMemberProgressionePage({ params }: PageProps)
   const kinds = progressionKindsForBranch(unit.branch);
 
   return (
-    <DashboardShell
+    <StaffShell
       title={member.full_name}
       subtitle={`${progressionPathTitle(unit.branch)} · ${branchLabel[unit.branch]}${
         member.totem ? ` · ${member.totem}` : ""
       }`}
       activeRole={activeRole}
       roles={roles}
+      unit={unit}
+      availableUnits={availableUnits}
       headerActions={
         <Link
           href="/dashboard/staff/progressione"
@@ -158,6 +161,6 @@ export default async function StaffMemberProgressionePage({ params }: PageProps)
           </section>
         </aside>
       </div>
-    </DashboardShell>
+    </StaffShell>
   );
 }

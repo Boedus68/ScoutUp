@@ -1,11 +1,12 @@
 import { connection } from "next/server";
-import { DashboardShell } from "@/components/dashboard-shell";
+import { StaffShell } from "@/components/staff-shell";
 import { requireRole } from "@/lib/auth";
 import {
   announcementAudienceLabel,
   formatDateTime,
 } from "@/lib/labels";
 import type { AnnouncementAudience } from "@/lib/types";
+import { isCocaUnit, staffUnitId } from "@/lib/staff-unit";
 import {
   createAnnouncementAction,
   deleteAnnouncementAction,
@@ -13,25 +14,25 @@ import {
 
 export default async function StaffBachecaPage() {
   await connection();
-  const { profile, unit, roles, activeRole, supabase } = await requireRole([
-    "leader",
-  ]);
+  const { profile, unit, roles, activeRole, supabase, availableUnits } =
+    await requireRole(["leader"]);
+  const coca = isCocaUnit(unit);
 
   const [annRes, subRes, ackRes] = await Promise.all([
-    profile.unit_id
+    staffUnitId(profile)
       ? supabase
           .from("announcements")
           .select(
             "id, title, body, audience, subgroup_id, created_at, created_by",
           )
-          .eq("unit_id", profile.unit_id)
+          .eq("unit_id", staffUnitId(profile))
           .order("created_at", { ascending: false })
       : Promise.resolve({ data: [], error: null }),
-    profile.unit_id
+    staffUnitId(profile)
       ? supabase
           .from("subgroups")
           .select("id, name")
-          .eq("unit_id", profile.unit_id)
+          .eq("unit_id", staffUnitId(profile))
           .order("name")
       : Promise.resolve({ data: [], error: null }),
     supabase.from("announcement_acks").select("announcement_id, user_id"),
@@ -54,15 +55,19 @@ export default async function StaffBachecaPage() {
   }
 
   return (
-    <DashboardShell
-      title="Bacheca"
+    <StaffShell
+      title={coca ? "Bacheca & Documenti Co.Ca." : "Bacheca"}
       subtitle={
         unit
-          ? `Circolari · ${unit.name}`
+          ? coca
+            ? `Progetto Educativo, verbali e circolari · ${unit.name}`
+            : `Circolari · ${unit.name}`
           : "Circolari mirate con presa visione"
       }
       activeRole={activeRole}
       roles={roles}
+      unit={unit}
+      availableUnits={availableUnits}
     >
       {schemaError ? (
         <p className="mb-4 rounded-md border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-950">
@@ -185,6 +190,6 @@ export default async function StaffBachecaPage() {
           ))
         )}
       </ul>
-    </DashboardShell>
+    </StaffShell>
   );
 }

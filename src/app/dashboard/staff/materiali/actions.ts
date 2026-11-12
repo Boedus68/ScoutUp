@@ -2,10 +2,11 @@
 
 import { revalidatePath } from "next/cache";
 import { requireRole } from "@/lib/auth";
+import { staffUnitId } from "@/lib/staff-unit";
 
 export async function createMaterialAction(formData: FormData) {
   const { profile, supabase } = await requireRole(["leader"]);
-  if (!profile.unit_id) throw new Error("Capo senza unità.");
+  if (!staffUnitId(profile)) throw new Error("Capo senza unità.");
 
   const title = String(formData.get("title") ?? "").trim();
   const description = String(formData.get("description") ?? "").trim();
@@ -14,7 +15,7 @@ export async function createMaterialAction(formData: FormData) {
   if (!title || !file_url) throw new Error("Titolo e URL obbligatori.");
 
   const { error } = await supabase.from("materials").insert({
-    unit_id: profile.unit_id,
+    unit_id: staffUnitId(profile),
     title,
     description: description || null,
     file_url,
@@ -34,7 +35,7 @@ export async function deleteMaterialAction(formData: FormData) {
     .from("materials")
     .delete()
     .eq("id", id)
-    .eq("unit_id", profile.unit_id ?? "");
+    .eq("unit_id", staffUnitId(profile) ?? "");
   if (error) throw new Error(error.message);
 
   revalidatePath("/dashboard/staff/materiali");

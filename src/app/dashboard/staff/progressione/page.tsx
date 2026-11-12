@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { connection } from "next/server";
-import { DashboardShell } from "@/components/dashboard-shell";
+import { redirect } from "next/navigation";
+import { StaffShell } from "@/components/staff-shell";
 import { requireRole } from "@/lib/auth";
 import {
   branchLabel,
@@ -8,18 +9,22 @@ import {
   progressionStatusLabel,
 } from "@/lib/labels";
 import type { ProgressionStatus } from "@/lib/types";
+import { isCocaUnit, staffUnitId } from "@/lib/staff-unit";
 
 export default async function StaffProgressioneIndexPage() {
   await connection();
-  const { profile, unit, roles, activeRole, supabase } = await requireRole([
-    "leader",
-  ]);
+  const { profile, unit, roles, activeRole, supabase, availableUnits } =
+    await requireRole(["leader"]);
 
-  const { data: members } = profile.unit_id
+  if (isCocaUnit(unit)) {
+    redirect("/dashboard/staff/percorso-formativo");
+  }
+
+  const { data: members } = staffUnitId(profile)
     ? await supabase
         .from("profiles")
         .select("id, full_name, totem")
-        .eq("unit_id", profile.unit_id)
+        .eq("unit_id", staffUnitId(profile))
         .eq("role", "member")
         .order("full_name")
     : { data: [] as { id: string; full_name: string; totem: string | null }[] };
@@ -41,7 +46,7 @@ export default async function StaffProgressioneIndexPage() {
   }
 
   return (
-    <DashboardShell
+    <StaffShell
       title="Progressione"
       subtitle={
         unit
@@ -50,6 +55,8 @@ export default async function StaffProgressioneIndexPage() {
       }
       activeRole={activeRole}
       roles={roles}
+      unit={unit}
+      availableUnits={availableUnits}
     >
       {(requested ?? []).length > 0 ? (
         <p className="mb-4 rounded-md border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-950">
@@ -96,6 +103,6 @@ export default async function StaffProgressioneIndexPage() {
           })
         )}
       </ul>
-    </DashboardShell>
+    </StaffShell>
   );
 }

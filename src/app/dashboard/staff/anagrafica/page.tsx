@@ -1,18 +1,19 @@
 import { connection } from "next/server";
-import { DashboardShell } from "@/components/dashboard-shell";
+import { StaffShell } from "@/components/staff-shell";
 import { requireRole } from "@/lib/auth";
 import { formatDate } from "@/lib/labels";
 import { CsvCensusImport } from "./csv-import";
+import { staffUnitId } from "@/lib/staff-unit";
 
 export default async function StaffAnagraficaPage() {
   await connection();
-  const { profile, roles, activeRole, supabase } = await requireRole(["leader"]);
+  const { profile, roles, activeRole, supabase, availableUnits, unit} = await requireRole(["leader"]);
 
-  const { data: members } = profile.unit_id
+  const { data: members } = staffUnitId(profile)
     ? await supabase
         .from("profiles")
         .select("id, full_name, totem, phone, birth_date, role, subgroup_id")
-        .eq("unit_id", profile.unit_id)
+        .eq("unit_id", staffUnitId(profile))
         .order("full_name")
     : {
         data: [] as {
@@ -40,11 +41,13 @@ export default async function StaffAnagraficaPage() {
   const subgroupName = new Map((subgroups ?? []).map((s) => [s.id, s.name]));
 
   return (
-    <DashboardShell
+    <StaffShell
       title="Anagrafica"
       subtitle="Censimento unità + import CSV"
       activeRole={activeRole}
       roles={roles}
+      unit={unit}
+      availableUnits={availableUnits}
     >
       <CsvCensusImport />
 
@@ -88,6 +91,6 @@ export default async function StaffAnagraficaPage() {
           </tbody>
         </table>
       </div>
-    </DashboardShell>
+    </StaffShell>
   );
 }

@@ -1,7 +1,8 @@
 import { connection } from "next/server";
-import { DashboardShell } from "@/components/dashboard-shell";
+import { StaffShell } from "@/components/staff-shell";
 import { requireRole } from "@/lib/auth";
 import { formatDateTime } from "@/lib/labels";
+import { isCocaUnit, staffUnitId } from "@/lib/staff-unit";
 import {
   createMaterialAction,
   deleteMaterialAction,
@@ -9,28 +10,32 @@ import {
 
 export default async function StaffMaterialiPage() {
   await connection();
-  const { profile, unit, roles, activeRole, supabase } = await requireRole([
-    "leader",
-  ]);
+  const { profile, unit, roles, activeRole, supabase, availableUnits } =
+    await requireRole(["leader"]);
+  const coca = isCocaUnit(unit);
 
-  const { data: materials } = profile.unit_id
+  const { data: materials } = staffUnitId(profile)
     ? await supabase
         .from("materials")
         .select("id, title, description, file_url, created_at")
-        .eq("unit_id", profile.unit_id)
+        .eq("unit_id", staffUnitId(profile))
         .order("created_at", { ascending: false })
     : { data: [] };
 
   return (
-    <DashboardShell
-      title="Materiali"
+    <StaffShell
+      title={coca ? "Documenti Co.Ca." : "Materiali"}
       subtitle={
         unit
-          ? `Archivio capi · ${unit.name}`
+          ? coca
+            ? `PE, verbali e documenti di Gruppo · ${unit.name}`
+            : `Archivio capi · ${unit.name}`
           : "Archivio materiali (titolo, descrizione, URL)"
       }
       activeRole={activeRole}
       roles={roles}
+      unit={unit}
+      availableUnits={availableUnits}
     >
       <form
         action={createMaterialAction}
@@ -122,6 +127,6 @@ export default async function StaffMaterialiPage() {
           ))
         )}
       </ul>
-    </DashboardShell>
+    </StaffShell>
   );
 }

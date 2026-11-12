@@ -1,8 +1,26 @@
-import type { AppRole, NavItem } from "@/lib/types";
+import type { AppRole, NavItem, ScoutBranch } from "@/lib/types";
 
-export function navItemsForRole(role: AppRole): NavItem[] {
+export function navItemsForRole(
+  role: AppRole,
+  branch?: ScoutBranch | null,
+): NavItem[] {
   switch (role) {
     case "leader":
+      if (branch === "COCA") {
+        return [
+          { href: "/dashboard/staff", label: "Panoramica Co.Ca." },
+          { href: "/dashboard/staff/calendario", label: "Appuntamenti Co.Ca." },
+          { href: "/dashboard/staff/events/new", label: "Nuovo appuntamento" },
+          {
+            href: "/dashboard/staff/percorso-formativo",
+            label: "Il Mio Percorso Formativo",
+          },
+          { href: "/dashboard/staff/bacheca", label: "Bacheca & Documenti" },
+          { href: "/dashboard/staff/materiali", label: "Documenti Co.Ca." },
+          { href: "/dashboard/staff/cassa", label: "Cassa di Gruppo" },
+          { href: "/dashboard/staff/unita", label: "Comunità Capi" },
+        ];
+      }
       return [
         { href: "/dashboard/staff", label: "Panoramica" },
         { href: "/dashboard/staff/calendario", label: "Calendario" },
@@ -13,7 +31,10 @@ export function navItemsForRole(role: AppRole): NavItem[] {
         { href: "/dashboard/staff/unita", label: "Unità" },
         { href: "/dashboard/staff/anagrafica", label: "Anagrafica" },
         { href: "/dashboard/staff/progressione", label: "Progressione" },
-        { href: "/dashboard/staff/fascicolo-sicurezza", label: "Fascicolo sicurezza" },
+        {
+          href: "/dashboard/staff/fascicolo-sicurezza",
+          label: "Fascicolo sicurezza",
+        },
       ];
     case "parent":
       return [

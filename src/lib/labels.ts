@@ -4,6 +4,7 @@ import type {
   AttendanceStatus,
   AuthorizationStatus,
   CashEntryKind,
+  CocaGroupRole,
   ConfirmationStatus,
   EventType,
   FeeStatus,
@@ -23,6 +24,16 @@ export const branchLabel: Record<ScoutBranch, string> = {
   LC: "LC — Lupetti / Coccinelle",
   EG: "EG — Esploratori / Guide",
   RS: "RS — Rover / Scolte",
+  COCA: "Co.Ca. — Comunità Capi",
+};
+
+export const groupRoleLabel: Record<CocaGroupRole, string> = {
+  capo_gruppo: "Capo Gruppo",
+  tesoriere: "Tesoriere",
+  segretario: "Segretario",
+  cambusiere: "Cambusiere",
+  maestro_novizi: "Maestro dei Novizi",
+  capo_unita: "Capo Unità",
 };
 
 export const attendanceLabel: Record<AttendanceStatus, string> = {
@@ -37,7 +48,18 @@ export const eventTypeLabel: Record<EventType, string> = {
   overnight: "Uscita con pernotto",
   camp: "Campo",
   route: "Route",
-  council: "Consiglio Capi",
+  council: "Consiglio di Gruppo",
+  formation: "Formazione",
+};
+
+/** Etichette tipiche in contesto Comunità Capi. */
+export const cocaEventTypeLabel: Record<EventType, string> = {
+  meeting: "Riunione di Co.Ca.",
+  overnight: "Uscita di Co.Ca.",
+  camp: "Campo / attività Co.Ca.",
+  route: "Uscita di Co.Ca.",
+  council: "Consiglio di Gruppo",
+  formation: "Formazione",
 };
 
 export const paymentLabel: Record<PaymentStatus, string> = {
@@ -64,6 +86,14 @@ export const eventTypeOptions: EventType[] = [
   "camp",
   "route",
   "council",
+  "formation",
+];
+
+export const cocaEventTypeOptions: EventType[] = [
+  "meeting",
+  "overnight",
+  "council",
+  "formation",
 ];
 
 export const progressionKindLabel: Record<ProgressionKind, string> = {
@@ -88,6 +118,8 @@ export function progressionKindsForBranch(branch: ScoutBranch): ProgressionKind[
       return ["tappa", "brevetto", "specialita"];
     case "RS":
       return ["punto_strada", "specialita"];
+    case "COCA":
+      return ["tappa"];
     default:
       return ["tappa", "specialita"];
   }
@@ -101,6 +133,8 @@ export function progressionPathTitle(branch: ScoutBranch) {
       return "Progressione EG";
     case "RS":
       return "Strada RS";
+    case "COCA":
+      return "Iter Formativo Capi";
     default:
       return "Progressione";
   }
