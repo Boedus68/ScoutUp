@@ -125,6 +125,69 @@ export type StaffNote = {
   created_at?: string;
 };
 
+export type AnnouncementAudience = "unit" | "subgroup" | "parents";
+
+export type Announcement = {
+  id: string;
+  unit_id: string;
+  subgroup_id: string | null;
+  audience: AnnouncementAudience;
+  title: string;
+  body: string;
+  created_by: string;
+  created_at?: string;
+  updated_at?: string;
+};
+
+export type AnnouncementAck = {
+  announcement_id: string;
+  user_id: string;
+  acknowledged_at: string;
+};
+
+export type Material = {
+  id: string;
+  unit_id: string;
+  title: string;
+  description: string | null;
+  file_url: string;
+  created_by: string;
+  created_at?: string;
+  updated_at?: string;
+};
+
+export type FeeStatus = "unpaid" | "paid" | "waived";
+
+export type AnnualFee = {
+  id: string;
+  unit_id: string;
+  member_id: string;
+  title: string;
+  amount: number;
+  due_date: string | null;
+  status: FeeStatus;
+  notes: string | null;
+  created_by: string;
+  created_at?: string;
+  updated_at?: string;
+};
+
+export type CashEntryKind = "expense" | "reimbursement" | "income";
+
+export type CashEntry = {
+  id: string;
+  unit_id: string;
+  kind: CashEntryKind;
+  title: string;
+  amount: number;
+  receipt_url: string | null;
+  member_id: string | null;
+  notes: string | null;
+  created_by: string;
+  created_at?: string;
+  updated_at?: string;
+};
+
 export type NavItem = {
   href: string;
   label: string;

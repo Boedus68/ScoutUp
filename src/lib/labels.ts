@@ -1,9 +1,12 @@
 import type {
+  AnnouncementAudience,
   AppRole,
   AttendanceStatus,
   AuthorizationStatus,
+  CashEntryKind,
   ConfirmationStatus,
   EventType,
+  FeeStatus,
   PaymentStatus,
   ProgressionKind,
   ProgressionStatus,
@@ -102,6 +105,24 @@ export function progressionPathTitle(branch: ScoutBranch) {
       return "Progressione";
   }
 }
+
+export const announcementAudienceLabel: Record<AnnouncementAudience, string> = {
+  unit: "Tutta l'unità",
+  subgroup: "Sottogruppo",
+  parents: "Solo genitori",
+};
+
+export const feeStatusLabel: Record<FeeStatus, string> = {
+  unpaid: "Da pagare",
+  paid: "Pagata",
+  waived: "Esente",
+};
+
+export const cashEntryKindLabel: Record<CashEntryKind, string> = {
+  expense: "Spesa",
+  reimbursement: "Rimborso",
+  income: "Entrata",
+};
 
 export function formatDateTime(iso: string) {
   return new Intl.DateTimeFormat("it-IT", {
