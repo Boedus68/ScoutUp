@@ -5,7 +5,7 @@ import { RoleSwitcher } from "@/components/role-switcher";
 import { UnitSwitcher } from "@/components/unit-switcher";
 import { SidebarNav } from "@/components/sidebar-nav";
 import { navItemsForRole } from "@/lib/nav";
-import { roleLabel } from "@/lib/labels";
+import { branchShortLabel, roleLabel } from "@/lib/labels";
 import type { AppRole, Unit } from "@/lib/types";
 
 type DashboardShellProps = {
@@ -19,6 +19,7 @@ type DashboardShellProps = {
   availableUnits?: Unit[];
   activeUnitId?: string | null;
   activeBranch?: Unit["branch"] | null;
+  activeUnitName?: string | null;
 };
 
 export function DashboardShell({
@@ -31,8 +32,14 @@ export function DashboardShell({
   availableUnits = [],
   activeUnitId = null,
   activeBranch = null,
+  activeUnitName = null,
 }: DashboardShellProps) {
   const items = navItemsForRole(activeRole, activeBranch);
+  const showUnitBlock = activeRole === "leader";
+  const branchChip =
+    activeRole === "leader" && activeBranch
+      ? branchShortLabel[activeBranch]
+      : null;
 
   return (
     <div className="min-h-full">
@@ -54,8 +61,25 @@ export function DashboardShell({
               </Link>
               <p className="mt-2 text-xs font-medium uppercase tracking-[0.14em] text-[var(--muted)]">
                 {roleLabel[activeRole]}
-                {activeBranch === "COCA" ? " · Co.Ca." : ""}
               </p>
+              {branchChip ? (
+                <p
+                  className="mt-2 inline-flex items-center gap-1.5 rounded-md border border-[var(--border)] bg-[var(--surface-muted)] px-2 py-1 text-xs font-semibold text-[var(--ink)]"
+                  title={
+                    activeUnitName
+                      ? `${activeUnitName} · ${branchChip}`
+                      : branchChip
+                  }
+                >
+                  <span className="text-[var(--muted)]">Branca</span>
+                  <span>{branchChip}</span>
+                  {activeUnitName ? (
+                    <span className="font-normal text-[var(--muted)]">
+                      · {activeUnitName}
+                    </span>
+                  ) : null}
+                </p>
+              ) : null}
               <div
                 className="uniform-stripe mt-3 h-1 w-full rounded-sm"
                 aria-hidden="true"
@@ -65,10 +89,12 @@ export function DashboardShell({
             <SidebarNav items={items} />
 
             <div className="mt-auto space-y-4 border-t border-[var(--border)] pt-4">
-              {activeRole === "leader" && availableUnits.length > 0 ? (
+              {showUnitBlock ? (
                 <UnitSwitcher
                   units={availableUnits}
                   activeUnitId={activeUnitId}
+                  activeBranch={activeBranch}
+                  activeUnitName={activeUnitName}
                 />
               ) : null}
               <RoleSwitcher roles={roles} activeRole={activeRole} />

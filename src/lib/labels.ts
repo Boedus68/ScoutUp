@@ -27,6 +27,14 @@ export const branchLabel: Record<ScoutBranch, string> = {
   COCA: "Co.Ca. — Comunità Capi",
 };
 
+/** Etichetta corta per sidebar / chip (LC · EG · RS · Co.Ca.). */
+export const branchShortLabel: Record<ScoutBranch, string> = {
+  LC: "LC",
+  EG: "EG",
+  RS: "RS",
+  COCA: "Co.Ca.",
+};
+
 export const groupRoleLabel: Record<CocaGroupRole, string> = {
   capo_gruppo: "Capo Gruppo",
   tesoriere: "Tesoriere",
