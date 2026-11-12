@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { connection } from "next/server";
 import { notFound } from "next/navigation";
-import { AppShell } from "@/components/app-shell";
+import { DashboardShell } from "@/components/dashboard-shell";
 import { requireRole } from "@/lib/auth";
 import { formatDateTime } from "@/lib/labels";
 import type { AttendanceStatus } from "@/lib/types";
@@ -14,7 +14,7 @@ type PageProps = {
 export default async function PresenzePage({ params }: PageProps) {
   await connection();
   const { id } = await params;
-  const { profile, supabase } = await requireRole(["leader"]);
+  const { profile, roles, activeRole, supabase } = await requireRole(["leader"]);
 
   const { data: event } = await supabase
     .from("events")
@@ -53,18 +53,20 @@ export default async function PresenzePage({ params }: PageProps) {
   });
 
   return (
-    <AppShell
+    <DashboardShell
       title="Registro Presenze"
       subtitle={`${event.title} · ${formatDateTime(event.starts_at)}${
         event.location ? ` · ${event.location}` : ""
       }`}
-      nav={
+      activeRole={activeRole}
+      roles={roles}
+      headerActions={
         <Link href="/dashboard/staff" className="text-sm font-medium text-[var(--forest)]">
           ← Uscite
         </Link>
       }
     >
       <AttendanceForm eventId={event.id} members={rows} />
-    </AppShell>
+    </DashboardShell>
   );
 }

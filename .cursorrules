@@ -1,0 +1,27 @@
+# Scout-Up — regole permanenti per agenti / Cursor
+
+## Stack
+- Next.js App Router + TypeScript + Tailwind.
+- Backend: **Supabase** (PostgreSQL + RLS). Mai Firebase.
+- Auth e sessioni: **`@supabase/ssr`** (client browser + server + middleware). Non usare solo `@supabase/supabase-js` nei Server Components senza cookie adapter.
+
+## Schema e sicurezza
+- `profiles.id` = `auth.users.id` (1:1).
+- Ruoli: `leader` | `member` | `parent` in `role_memberships`; `profiles.role` è il primario; `profiles.active_role` è solo contesto UI (switcher).
+- RLS è capability-based (`has_role` / `is_leader` / `is_parent_of` / `same_unit`), **non** basata sullo switcher UI.
+- Capo: dati della propria unità. Genitore: solo figli collegati in `parent_child`. Member: propri dati + calendario/eventi della propria unità.
+- Nuove tabelle: sempre ENABLE + FORCE RLS e policy esplicite.
+- Migration SQL versionate in `supabase/migrations/`. Non applicare DDL ad-hoc senza file.
+
+## UI / prodotto
+- Lingua UI: **italiano** (Presenze, Uscite, Unità, Gruppo, Squadriglia, Totem, …).
+- Contesto scout AGESCI-like: branche LC | EG | RS.
+- Evitare estetiche AI generiche (viola-on-white, cream+terracotta, broadsheet). Preferire UI registro chiara (verde scout / neutri).
+- Dashboard con menu laterale dinamico per ruolo attivo.
+
+## Segreti
+- Mai committare `.env.local`. Mai stampare chiavi/password in chat, report o screenshot annotati.
+- Password DB: tempfile mode 600 + `psql "$DATABASE_URL"`, mai URI con password su argv/history.
+
+## Scope
+- Seguire la roadmap in docs: non anticipare fasi non assegnate (Progressione, sanitario, bacheca, …) senza richiesta esplicita.

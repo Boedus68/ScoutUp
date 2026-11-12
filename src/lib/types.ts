@@ -2,20 +2,41 @@ export type AppRole = "leader" | "member" | "parent";
 export type ScoutBranch = "LC" | "EG" | "RS";
 export type AttendanceStatus = "present" | "absent" | "justified";
 
-export type Profile = {
+export type Group = {
   id: string;
-  full_name: string;
-  role: AppRole;
-  unit_id: string | null;
+  name: string;
+  city: string | null;
   created_at?: string;
-  updated_at?: string;
 };
 
 export type Unit = {
   id: string;
   name: string;
   branch: ScoutBranch;
+  group_id: string | null;
+  association_year: string | null;
   created_at?: string;
+};
+
+export type Subgroup = {
+  id: string;
+  unit_id: string;
+  name: string;
+  created_at?: string;
+};
+
+export type Profile = {
+  id: string;
+  full_name: string;
+  role: AppRole;
+  active_role: AppRole | null;
+  unit_id: string | null;
+  subgroup_id: string | null;
+  totem: string | null;
+  phone: string | null;
+  birth_date: string | null;
+  created_at?: string;
+  updated_at?: string;
 };
 
 export type EventRow = {
@@ -38,4 +59,9 @@ export type AttendanceRow = {
   notes: string | null;
   updated_by: string | null;
   updated_at?: string;
+};
+
+export type NavItem = {
+  href: string;
+  label: string;
 };

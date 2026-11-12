@@ -1,20 +1,22 @@
 import Link from "next/link";
 import { connection } from "next/server";
-import { AppShell } from "@/components/app-shell";
+import { DashboardShell } from "@/components/dashboard-shell";
 import { requireRole } from "@/lib/auth";
 import { createEventAction } from "../../actions";
 
 export default async function NewEventPage() {
   await connection();
-  const { unit } = await requireRole(["leader"]);
+  const { unit, roles, activeRole } = await requireRole(["leader"]);
 
   return (
-    <AppShell
+    <DashboardShell
       title="Nuova uscita"
       subtitle={unit ? unit.name : "Unità"}
-      nav={
+      activeRole={activeRole}
+      roles={roles}
+      headerActions={
         <Link href="/dashboard/staff" className="text-sm font-medium text-[var(--forest)]">
-          ← Elenco uscite
+          ← Elenco
         </Link>
       }
     >
@@ -61,11 +63,6 @@ export default async function NewEventPage() {
           />
         </label>
 
-        <p className="text-sm text-[var(--muted)]">
-          L&apos;uscita verrà creata per l&apos;unità del tuo profilo
-          {unit ? ` (${unit.name})` : ""}.
-        </p>
-
         <button
           type="submit"
           className="rounded-md bg-[var(--forest)] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[var(--forest-deep)]"
@@ -73,6 +70,6 @@ export default async function NewEventPage() {
           Crea e apri Presenze
         </button>
       </form>
-    </AppShell>
+    </DashboardShell>
   );
 }

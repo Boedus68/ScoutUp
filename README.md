@@ -76,6 +76,14 @@ src/app/dashboard/     # staff / parent / member
 supabase/migrations/   # schema versionato
 ```
 
-## Fuori scope (MVP attuale)
+## Fase 1 (struttura associativa)
 
-Progressione personale, sync offline, import CSV, polish PWA avanzato, deploy produzione.
+Vedi guida: nel Context del progetto `docs/fase1-struttura-associativa.md`.
+
+- Migration: `supabase/migrations/20261112_fase1_struttura_associativa.sql`
+- Seed demo: `supabase/seed.sql` (UUID fissi + istruzioni auth.users)
+- Menu laterale per ruolo + switcher se `role_memberships` ha più ruoli
+
+## Fuori scope (oltre Fase 1)
+
+Progressione personale, sync offline, import CSV completo, sanitario, bacheca, polish PWA avanzato, deploy produzione.

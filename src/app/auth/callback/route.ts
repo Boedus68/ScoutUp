@@ -24,10 +24,12 @@ export async function GET(request: Request) {
       if (user) {
         const { data: profile } = await supabase
           .from("profiles")
-          .select("role")
+          .select("role, active_role")
           .eq("id", user.id)
           .maybeSingle();
-        const role = (profile?.role as AppRole | undefined) ?? "member";
+        const role =
+          ((profile?.active_role ?? profile?.role) as AppRole | undefined) ??
+          "member";
         const destination = next?.startsWith("/") ? next : dashboardPathForRole(role);
         return NextResponse.redirect(`${origin}${destination}`);
       }

@@ -1,5 +1,5 @@
 import { connection } from "next/server";
-import { AppShell } from "@/components/app-shell";
+import { DashboardShell } from "@/components/dashboard-shell";
 import { StatusBadge } from "@/components/status-badge";
 import { requireRole } from "@/lib/auth";
 import { branchLabel, formatDateTime } from "@/lib/labels";
@@ -7,7 +7,9 @@ import type { AttendanceStatus } from "@/lib/types";
 
 export default async function MemberDashboardPage() {
   await connection();
-  const { profile, unit, supabase } = await requireRole(["member"]);
+  const { profile, unit, roles, activeRole, supabase } = await requireRole([
+    "member",
+  ]);
 
   const nowIso = new Date().toISOString();
 
@@ -19,7 +21,14 @@ export default async function MemberDashboardPage() {
         .gte("starts_at", nowIso)
         .order("starts_at", { ascending: true })
         .limit(20)
-    : { data: [] as { id: string; title: string; starts_at: string; location: string | null }[] };
+    : {
+        data: [] as {
+          id: string;
+          title: string;
+          starts_at: string;
+          location: string | null;
+        }[],
+      };
 
   const eventIds = (events ?? []).map((event) => event.id);
 
@@ -37,23 +46,26 @@ export default async function MemberDashboardPage() {
   );
 
   return (
-    <AppShell
+    <DashboardShell
       title="La mia unità"
       subtitle={
         unit
           ? `${unit.name} · ${branchLabel[unit.branch]}`
-          : "Hub in sola lettura"
+          : "Calendario in sola lettura"
       }
+      activeRole={activeRole}
+      roles={roles}
     >
       <p className="mb-6 text-sm text-[var(--muted)]">
-        Ciao {profile.full_name}. Qui trovi le prossime uscite e lo stato delle
-        tue Presenze (sola lettura).
+        Ciao {profile.full_name}
+        {profile.totem ? ` (${profile.totem})` : ""}. Ecco le prossime uscite e
+        lo stato delle tue Presenze.
       </p>
 
       <ul className="divide-y divide-[var(--border)] overflow-hidden rounded-xl border border-[var(--border)] bg-white">
         {(events ?? []).length === 0 ? (
           <li className="px-4 py-8 text-sm text-[var(--muted)]">
-            Nessuna uscita in programma per la tua unità.
+            Nessuna uscita in programma.
           </li>
         ) : (
           (events ?? []).map((event) => (
@@ -73,6 +85,6 @@ export default async function MemberDashboardPage() {
           ))
         )}
       </ul>
-    </AppShell>
+    </DashboardShell>
   );
 }

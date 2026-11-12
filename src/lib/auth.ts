@@ -16,6 +16,10 @@ export function dashboardPathForRole(role: AppRole) {
   }
 }
 
+export function effectiveRole(profile: Profile): AppRole {
+  return profile.active_role ?? profile.role;
+}
+
 export async function requireConfiguredSupabase() {
   if (!isSupabaseConfigured()) {
     redirect("/setup");
@@ -30,7 +34,13 @@ export async function getSessionProfile() {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    return { user: null, profile: null, unit: null, supabase };
+    return {
+      user: null,
+      profile: null,
+      unit: null,
+      roles: [] as AppRole[],
+      supabase,
+    };
   }
 
   const { data: profile } = await supabase
@@ -38,6 +48,16 @@ export async function getSessionProfile() {
     .select("*")
     .eq("id", user.id)
     .maybeSingle();
+
+  const { data: memberships } = await supabase
+    .from("role_memberships")
+    .select("role")
+    .eq("user_id", user.id);
+
+  const roles = (memberships ?? []).map((row) => row.role as AppRole);
+  if (profile && roles.length === 0) {
+    roles.push(profile.role as AppRole);
+  }
 
   let unit: Unit | null = null;
   if (profile?.unit_id) {
@@ -53,6 +73,7 @@ export async function getSessionProfile() {
     user,
     profile: profile as Profile | null,
     unit,
+    roles,
     supabase,
   };
 }
@@ -67,11 +88,22 @@ export async function requireUser() {
 
 export async function requireRole(allowed: AppRole[]) {
   const session = await requireUser();
-  if (!session.profile || !allowed.includes(session.profile.role)) {
-    redirect(dashboardPathForRole(session.profile?.role ?? "member"));
+  if (!session.profile) {
+    redirect("/dashboard");
   }
+
+  const active = effectiveRole(session.profile);
+  const canAct =
+    allowed.includes(active) &&
+    (session.roles.includes(active) || session.profile.role === active);
+
+  if (!canAct) {
+    redirect(dashboardPathForRole(active));
+  }
+
   return {
     ...session,
     profile: session.profile,
+    activeRole: active,
   };
 }

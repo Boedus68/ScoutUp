@@ -55,11 +55,13 @@ export function LoginForm() {
 
       const { data: profile } = await supabase
         .from("profiles")
-        .select("role")
+        .select("role, active_role")
         .eq("id", user.id)
         .maybeSingle();
 
-      const role = (profile?.role as AppRole | undefined) ?? "member";
+      const role =
+        ((profile?.active_role ?? profile?.role) as AppRole | undefined) ??
+        "member";
       router.push(dashboardPathForRole(role));
       router.refresh();
     } catch (err) {
