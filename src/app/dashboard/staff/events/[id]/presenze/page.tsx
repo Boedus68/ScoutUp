@@ -16,6 +16,7 @@ import type {
   MedicalRecord,
   PaymentStatus,
 } from "@/lib/types";
+import { OfflineEventCache } from "@/components/offline-event-cache";
 import { AttendanceForm } from "./attendance-form";
 
 type PageProps = {
@@ -172,6 +173,14 @@ export default async function PresenzePage({ params }: PageProps) {
           </p>
         </div>
       </div>
+
+      <OfflineEventCache
+        eventId={event.id}
+        event={event as unknown as Record<string, unknown>}
+        members={(members ?? []) as unknown as Array<Record<string, unknown>>}
+        medical={(medicalRows ?? []) as MedicalRecord[]}
+        attendances={(attendances ?? []) as unknown as Array<Record<string, unknown>>}
+      />
 
       <AttendanceForm
         eventId={event.id}

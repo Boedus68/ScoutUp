@@ -1,6 +1,6 @@
 "use client";
 
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import { MedicalAlertBadge } from "@/components/medical-alert";
 import {
   attendanceLabel,
@@ -8,6 +8,7 @@ import {
   confirmationLabel,
   paymentLabel,
 } from "@/lib/labels";
+import { enqueueSync } from "@/lib/offline-store";
 import type {
   AttendanceStatus,
   AuthorizationStatus,
@@ -42,17 +43,44 @@ export function AttendanceForm({
   hasFee: boolean;
 }) {
   const [pending, startTransition] = useTransition();
+  const [offlineMsg, setOfflineMsg] = useState<string | null>(null);
   const criticalCount = members.filter((m) => m.medical?.criticality_flag).length;
 
   return (
     <form
       action={(formData) => {
         startTransition(async () => {
+          if (typeof navigator !== "undefined" && !navigator.onLine) {
+            const memberIds = formData.getAll("member_id").map(String);
+            const rows = memberIds.map((memberId) => ({
+              member_id: memberId,
+              status: String(formData.get(`status_${memberId}`) ?? "absent"),
+              payment_status: String(
+                formData.get(`payment_${memberId}`) ?? "unpaid",
+              ),
+              notes: String(formData.get(`notes_${memberId}`) ?? "").trim() || null,
+            }));
+            await enqueueSync({
+              kind: "attendances",
+              eventId,
+              payload: { rows },
+            });
+            setOfflineMsg(
+              "Sei offline: modifiche salvate in coda locale. Si sincronizzano al ritorno online.",
+            );
+            return;
+          }
+          setOfflineMsg(null);
           await saveAttendancesAction(eventId, formData);
         });
       }}
       className="space-y-4"
     >
+      {offlineMsg ? (
+        <p className="rounded-md border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-950">
+          {offlineMsg}
+        </p>
+      ) : null}
       {criticalCount > 0 ? (
         <p className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-950">
           <strong>{criticalCount}</strong> ragazz
