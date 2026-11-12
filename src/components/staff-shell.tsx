@@ -32,6 +32,7 @@ export function StaffShell({
       availableUnits={availableUnits}
       activeUnitId={unit?.id ?? null}
       activeBranch={unit?.branch ?? null}
+      activeUnitName={unit?.name ?? null}
       headerActions={headerActions}
     >
       {children}
