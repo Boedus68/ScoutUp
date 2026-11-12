@@ -6,10 +6,15 @@ export default function SetupPage() {
 
   return (
     <div className="mx-auto flex min-h-full max-w-2xl flex-col px-4 py-12 sm:px-6">
-      <Link href="/" className="text-sm font-semibold text-[var(--forest)]">
+      <Link
+        href="/"
+        className="text-sm font-semibold text-[var(--forest)] transition hover:text-[var(--forest-deep)]"
+      >
         ← Scout-Up
       </Link>
-      <h1 className="mt-6 font-display text-3xl text-[var(--ink)]">Setup Supabase</h1>
+      <h1 className="mt-6 font-display text-3xl tracking-tight text-[var(--ink)]">
+        Setup Supabase
+      </h1>
       <p className="mt-3 text-[var(--muted)]">
         L&apos;app è partita senza credenziali. Completa questi passi per attivare
         login e dashboard.

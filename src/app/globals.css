@@ -1,19 +1,25 @@
 @import "tailwindcss";
 
 :root {
-  --bg: #eef3ef;
+  --bg: #e7f0ea;
+  --bg-deep: #d3e4d9;
   --surface: #ffffff;
-  --surface-muted: #f5f8f5;
-  --ink: #14201a;
-  --muted: #5b6b62;
-  --forest: #1b5e3b;
-  --forest-deep: #13462c;
-  --leaf: #2f7a52;
-  --amber: #c56a17;
-  --border: #d5ded8;
-  --ring: #1b5e3b;
+  --surface-muted: #f1f6f2;
+  --ink: #132418;
+  --muted: #4f6356;
+  --forest: #1a6b3c;
+  --forest-deep: #0f4a2a;
+  --leaf: #3a8f5c;
+  --sky: #5b8fad;
+  --sky-soft: #c8dce8;
+  --campfire: #b86a2a;
+  --sand: #e8dfc9;
+  --border: #c5d4ca;
+  --ring: #1a6b3c;
   --background: var(--bg);
   --foreground: var(--ink);
+  --shadow-soft: 0 18px 40px rgba(19, 36, 24, 0.08);
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 @theme inline {
@@ -25,11 +31,12 @@
 
 body {
   background:
-    radial-gradient(1200px 500px at 10% -10%, rgba(47, 122, 82, 0.12), transparent 55%),
-    radial-gradient(900px 420px at 100% 0%, rgba(197, 106, 23, 0.08), transparent 50%),
-    var(--bg);
+    radial-gradient(1100px 480px at 8% -8%, rgba(91, 143, 173, 0.18), transparent 55%),
+    radial-gradient(900px 420px at 100% 0%, rgba(58, 143, 92, 0.14), transparent 52%),
+    linear-gradient(180deg, var(--bg) 0%, var(--bg-deep) 100%);
   color: var(--ink);
   font-family: var(--font-body), "Segoe UI", sans-serif;
+  background-attachment: fixed;
 }
 
 .font-display {
@@ -45,4 +52,75 @@ button {
 
 a {
   color: inherit;
+}
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes drift-scale {
+  from {
+    transform: scale(1.04);
+  }
+  to {
+    transform: scale(1.12);
+  }
+}
+
+@keyframes soft-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.motion-rise {
+  animation: rise-in 0.85s var(--ease-out) both;
+}
+
+.motion-rise-delay {
+  animation: rise-in 0.9s var(--ease-out) 0.14s both;
+}
+
+.motion-rise-delay-2 {
+  animation: rise-in 0.95s var(--ease-out) 0.28s both;
+}
+
+.motion-fade {
+  animation: soft-fade 1s var(--ease-out) both;
+}
+
+.hero-kenburns {
+  animation: drift-scale 22s ease-in-out alternate infinite;
+}
+
+.topo-bg {
+  background-image: url("/images/topo-pattern.svg");
+  background-size: 180px 180px;
+}
+
+.shell-aside {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(241, 246, 242, 0.98)),
+    url("/images/topo-pattern.svg");
+  background-size: auto, 180px 180px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .motion-rise,
+  .motion-rise-delay,
+  .motion-rise-delay-2,
+  .motion-fade,
+  .hero-kenburns {
+    animation: none;
+  }
 }

@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { LogoutButton } from "@/components/logout-button";
 import { RoleSwitcher } from "@/components/role-switcher";
@@ -26,15 +27,26 @@ export function DashboardShell({
   const items = navItemsForRole(activeRole);
 
   return (
-    <div className="min-h-full bg-[var(--bg)]">
+    <div className="min-h-full">
       <div className="mx-auto flex min-h-full max-w-6xl flex-col md:flex-row">
-        <aside className="border-b border-[var(--border)] bg-[var(--surface)] md:w-64 md:shrink-0 md:border-b-0 md:border-r">
+        <aside className="shell-aside border-b border-[var(--border)] md:w-64 md:shrink-0 md:border-b-0 md:border-r">
           <div className="flex h-full flex-col gap-6 px-4 py-5">
-            <div>
-              <Link href="/" className="text-lg font-semibold text-[var(--forest)]">
-                Scout-Up
+            <div className="motion-fade">
+              <Link href="/" className="group inline-flex items-center gap-2.5">
+                <Image
+                  src="/images/compass-mark.svg"
+                  alt=""
+                  width={36}
+                  height={36}
+                  className="transition duration-300 group-hover:rotate-12"
+                />
+                <span className="font-display text-xl tracking-tight text-[var(--forest)]">
+                  Scout-Up
+                </span>
               </Link>
-              <p className="mt-1 text-xs text-[var(--muted)]">{roleLabel[activeRole]}</p>
+              <p className="mt-2 text-xs font-medium uppercase tracking-[0.14em] text-[var(--muted)]">
+                {roleLabel[activeRole]}
+              </p>
             </div>
 
             <SidebarNav items={items} />
@@ -47,16 +59,25 @@ export function DashboardShell({
         </aside>
 
         <div className="min-w-0 flex-1">
-          <header className="flex items-center justify-between gap-3 border-b border-[var(--border)] bg-[var(--surface)] px-4 py-4 sm:px-6">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-wide text-[var(--muted)]">
-                {subtitle ?? roleLabel[activeRole]}
-              </p>
-              <h1 className="font-display text-2xl tracking-tight text-[var(--ink)] sm:text-3xl">
-                {title}
-              </h1>
+          <header className="relative overflow-hidden border-b border-[var(--border)] bg-[var(--surface)]/95 px-4 py-4 backdrop-blur-sm sm:px-6">
+            <div
+              className="pointer-events-none absolute inset-y-0 right-0 w-1/2 opacity-40"
+              style={{
+                background:
+                  "radial-gradient(420px 120px at 100% 0%, rgba(91,143,173,0.22), transparent 70%)",
+              }}
+            />
+            <div className="relative flex items-center justify-between gap-3">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--muted)]">
+                  {subtitle ?? roleLabel[activeRole]}
+                </p>
+                <h1 className="font-display text-2xl tracking-tight text-[var(--ink)] sm:text-3xl">
+                  {title}
+                </h1>
+              </div>
+              {headerActions}
             </div>
-            {headerActions}
           </header>
           <main className="px-4 py-6 sm:px-6">{children}</main>
         </div>
