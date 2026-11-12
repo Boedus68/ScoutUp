@@ -2,6 +2,7 @@ import Link from "next/link";
 import { connection } from "next/server";
 import { DashboardShell } from "@/components/dashboard-shell";
 import { requireRole } from "@/lib/auth";
+import { eventTypeLabel, eventTypeOptions } from "@/lib/labels";
 import { createEventAction } from "../../actions";
 
 export default async function NewEventPage() {
@@ -15,8 +16,8 @@ export default async function NewEventPage() {
       activeRole={activeRole}
       roles={roles}
       headerActions={
-        <Link href="/dashboard/staff" className="text-sm font-medium text-[var(--forest)]">
-          ← Elenco
+        <Link href="/dashboard/staff/calendario" className="text-sm font-medium text-[var(--forest)]">
+          ← Calendario
         </Link>
       }
     >
@@ -32,6 +33,21 @@ export default async function NewEventPage() {
             placeholder="Es. Uscita domenicale al bosco"
             className="w-full rounded-md border border-[var(--border)] px-3 py-2 outline-none ring-[var(--ring)] focus:ring-2"
           />
+        </label>
+
+        <label className="block text-sm">
+          <span className="mb-1 block font-medium">Tipo</span>
+          <select
+            name="event_type"
+            defaultValue="meeting"
+            className="w-full rounded-md border border-[var(--border)] px-3 py-2"
+          >
+            {eventTypeOptions.map((type) => (
+              <option key={type} value={type}>
+                {eventTypeLabel[type]}
+              </option>
+            ))}
+          </select>
         </label>
 
         <div className="grid gap-4 sm:grid-cols-2">
@@ -59,6 +75,37 @@ export default async function NewEventPage() {
           <input
             name="location"
             placeholder="Es. Sede / Parco comunale"
+            className="w-full rounded-md border border-[var(--border)] px-3 py-2 outline-none ring-[var(--ring)] focus:ring-2"
+          />
+        </label>
+
+        <label className="block text-sm">
+          <span className="mb-1 block font-medium">Quota (€, opzionale)</span>
+          <input
+            name="fee_amount"
+            type="number"
+            min="0"
+            step="0.01"
+            placeholder="0.00"
+            className="w-full rounded-md border border-[var(--border)] px-3 py-2 outline-none ring-[var(--ring)] focus:ring-2"
+          />
+        </label>
+
+        <label className="block text-sm">
+          <span className="mb-1 block font-medium">Equipaggiamento (testo o URL)</span>
+          <textarea
+            name="equipment_list"
+            rows={3}
+            placeholder="Es. Sacco a pelo, borraccia… oppure link alla lista"
+            className="w-full rounded-md border border-[var(--border)] px-3 py-2 outline-none ring-[var(--ring)] focus:ring-2"
+          />
+        </label>
+
+        <label className="block text-sm">
+          <span className="mb-1 block font-medium">Descrizione (opzionale)</span>
+          <textarea
+            name="description"
+            rows={2}
             className="w-full rounded-md border border-[var(--border)] px-3 py-2 outline-none ring-[var(--ring)] focus:ring-2"
           />
         </label>

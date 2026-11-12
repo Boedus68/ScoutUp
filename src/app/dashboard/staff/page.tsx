@@ -2,7 +2,8 @@ import Link from "next/link";
 import { connection } from "next/server";
 import { DashboardShell } from "@/components/dashboard-shell";
 import { requireRole } from "@/lib/auth";
-import { branchLabel, formatDateTime } from "@/lib/labels";
+import { branchLabel, eventTypeLabel, formatDateTime } from "@/lib/labels";
+import type { EventType } from "@/lib/types";
 
 export default async function StaffDashboardPage() {
   await connection();
@@ -10,12 +11,14 @@ export default async function StaffDashboardPage() {
     "leader",
   ]);
 
+  const nowIso = new Date().toISOString();
   const { data: events } = await supabase
     .from("events")
-    .select("id, title, starts_at, ends_at, location")
+    .select("id, title, starts_at, location, event_type")
     .eq("unit_id", profile.unit_id ?? "")
-    .order("starts_at", { ascending: false })
-    .limit(30);
+    .gte("starts_at", nowIso)
+    .order("starts_at", { ascending: true })
+    .limit(8);
 
   return (
     <DashboardShell
@@ -38,42 +41,50 @@ export default async function StaffDashboardPage() {
         </Link>
       }
     >
-      {!profile.unit_id ? (
-        <p className="mb-6 rounded-md border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-950">
-          Assegna un&apos;unità al profilo leader per gestire uscite e presenze.
-        </p>
-      ) : null}
-
       <section>
-        <h2 className="text-lg font-semibold">Uscite recenti</h2>
-        <p className="text-sm text-[var(--muted)]">
-          Apri un&apos;uscita per il registro Presenze.
-        </p>
-        <ul className="mt-4 divide-y divide-[var(--border)] overflow-hidden rounded-xl border border-[var(--border)] bg-white">
+        <div className="mb-3 flex items-end justify-between gap-3">
+          <div>
+            <h2 className="text-lg font-semibold">Prossime uscite</h2>
+            <p className="text-sm text-[var(--muted)]">
+              Apri il registro Presenze / quote / autorizzazioni.
+            </p>
+          </div>
+          <Link
+            href="/dashboard/staff/calendario"
+            className="text-sm font-medium text-[var(--forest)]"
+          >
+            Calendario completo →
+          </Link>
+        </div>
+        <ul className="divide-y divide-[var(--border)] overflow-hidden rounded-xl border border-[var(--border)] bg-white">
           {(events ?? []).length === 0 ? (
             <li className="px-4 py-8 text-sm text-[var(--muted)]">
-              Nessuna uscita ancora.
+              Nessuna uscita in programma.
             </li>
           ) : (
-            (events ?? []).map((event) => (
-              <li key={event.id}>
-                <Link
-                  href={`/dashboard/staff/events/${event.id}/presenze`}
-                  className="flex flex-col gap-1 px-4 py-4 transition hover:bg-[var(--surface-muted)] sm:flex-row sm:items-center sm:justify-between"
-                >
-                  <div>
-                    <p className="font-semibold">{event.title}</p>
-                    <p className="text-sm text-[var(--muted)]">
-                      {formatDateTime(event.starts_at)}
-                      {event.location ? ` · ${event.location}` : ""}
-                    </p>
-                  </div>
-                  <span className="text-sm font-medium text-[var(--forest)]">
-                    Presenze →
-                  </span>
-                </Link>
-              </li>
-            ))
+            (events ?? []).map((event) => {
+              const type =
+                (event.event_type as EventType | undefined) ?? "meeting";
+              return (
+                <li key={event.id}>
+                  <Link
+                    href={`/dashboard/staff/events/${event.id}/presenze`}
+                    className="flex flex-col gap-1 px-4 py-4 transition hover:bg-[var(--surface-muted)] sm:flex-row sm:items-center sm:justify-between"
+                  >
+                    <div>
+                      <p className="font-semibold">{event.title}</p>
+                      <p className="text-sm text-[var(--muted)]">
+                        {eventTypeLabel[type]} · {formatDateTime(event.starts_at)}
+                        {event.location ? ` · ${event.location}` : ""}
+                      </p>
+                    </div>
+                    <span className="text-sm font-medium text-[var(--forest)]">
+                      Presenze →
+                    </span>
+                  </Link>
+                </li>
+              );
+            })
           )}
         </ul>
       </section>

@@ -1,6 +1,10 @@
 export type AppRole = "leader" | "member" | "parent";
 export type ScoutBranch = "LC" | "EG" | "RS";
-export type AttendanceStatus = "present" | "absent" | "justified";
+export type AttendanceStatus = "present" | "absent" | "justified" | "late";
+export type EventType = "meeting" | "overnight" | "camp" | "route" | "council";
+export type PaymentStatus = "unpaid" | "paid" | "waived";
+export type ConfirmationStatus = "pending" | "attending" | "not_attending";
+export type AuthorizationStatus = "pending" | "authorized" | "revoked";
 
 export type Group = {
   id: string;
@@ -47,6 +51,9 @@ export type EventRow = {
   ends_at: string | null;
   location: string | null;
   description: string | null;
+  event_type: EventType;
+  fee_amount: number | null;
+  equipment_list: string | null;
   created_by: string;
   created_at?: string;
 };
@@ -57,6 +64,7 @@ export type AttendanceRow = {
   member_id: string;
   status: AttendanceStatus;
   notes: string | null;
+  payment_status: PaymentStatus;
   updated_by: string | null;
   updated_at?: string;
 };

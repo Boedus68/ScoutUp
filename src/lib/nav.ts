@@ -5,8 +5,9 @@ export function navItemsForRole(role: AppRole): NavItem[] {
     case "leader":
       return [
         { href: "/dashboard/staff", label: "Panoramica" },
-        { href: "/dashboard/staff/unita", label: "Unità" },
+        { href: "/dashboard/staff/calendario", label: "Calendario" },
         { href: "/dashboard/staff/events/new", label: "Nuova uscita" },
+        { href: "/dashboard/staff/unita", label: "Unità" },
         { href: "/dashboard/staff/anagrafica", label: "Anagrafica" },
       ];
     case "parent":

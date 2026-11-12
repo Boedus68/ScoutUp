@@ -1,25 +1,42 @@
 "use client";
 
 import { useTransition } from "react";
-import { attendanceLabel } from "@/lib/labels";
-import type { AttendanceStatus } from "@/lib/types";
+import {
+  attendanceLabel,
+  authorizationLabel,
+  confirmationLabel,
+  paymentLabel,
+} from "@/lib/labels";
+import type {
+  AttendanceStatus,
+  AuthorizationStatus,
+  ConfirmationStatus,
+  PaymentStatus,
+} from "@/lib/types";
 import { saveAttendancesAction } from "../../../actions";
 
 type MemberRow = {
   id: string;
   full_name: string;
   status: AttendanceStatus;
+  payment_status: PaymentStatus;
   notes: string;
+  confirmation: ConfirmationStatus | null;
+  authorization: AuthorizationStatus | null;
+  frequencyPct: number | null;
 };
 
-const statuses: AttendanceStatus[] = ["present", "absent", "justified"];
+const statuses: AttendanceStatus[] = ["present", "absent", "justified", "late"];
+const payments: PaymentStatus[] = ["unpaid", "paid", "waived"];
 
 export function AttendanceForm({
   eventId,
   members,
+  hasFee,
 }: {
   eventId: string;
   members: MemberRow[];
+  hasFee: boolean;
 }) {
   const [pending, startTransition] = useTransition();
 
@@ -32,35 +49,38 @@ export function AttendanceForm({
       }}
       className="space-y-4"
     >
-      <div className="overflow-hidden rounded-xl border border-[var(--border)] bg-white">
-        <table className="w-full text-left text-sm">
+      <div className="overflow-x-auto rounded-xl border border-[var(--border)] bg-white">
+        <table className="w-full min-w-[56rem] text-left text-sm">
           <thead className="bg-[var(--surface-muted)] text-[var(--muted)]">
             <tr>
-              <th className="px-4 py-3 font-medium">Ragazzo / Ragazza</th>
-              <th className="px-4 py-3 font-medium">Stato</th>
-              <th className="hidden px-4 py-3 font-medium sm:table-cell">Note</th>
+              <th className="px-3 py-3 font-medium">Ragazzo / Ragazza</th>
+              <th className="px-3 py-3 font-medium">Presenza</th>
+              {hasFee ? <th className="px-3 py-3 font-medium">Quota</th> : null}
+              <th className="px-3 py-3 font-medium">Conferma</th>
+              <th className="px-3 py-3 font-medium">Autorizz.</th>
+              <th className="px-3 py-3 font-medium">Freq.</th>
+              <th className="px-3 py-3 font-medium">Note</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-[var(--border)]">
             {members.length === 0 ? (
               <tr>
-                <td colSpan={3} className="px-4 py-8 text-[var(--muted)]">
-                  Nessun member in questa unità. Aggiungi profili con ruolo{" "}
-                  <code>member</code> e lo stesso <code>unit_id</code>.
+                <td colSpan={7} className="px-4 py-8 text-[var(--muted)]">
+                  Nessun member in questa unità.
                 </td>
               </tr>
             ) : (
               members.map((member) => (
                 <tr key={member.id}>
-                  <td className="px-4 py-3 font-medium">
+                  <td className="px-3 py-3 font-medium">
                     {member.full_name}
                     <input type="hidden" name="member_id" value={member.id} />
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-3 py-3">
                     <select
                       name={`status_${member.id}`}
                       defaultValue={member.status}
-                      className="w-full min-w-[9rem] rounded-md border border-[var(--border)] bg-white px-2 py-1.5"
+                      className="w-full min-w-[8rem] rounded-md border border-[var(--border)] bg-white px-2 py-1.5"
                     >
                       {statuses.map((status) => (
                         <option key={status} value={status}>
@@ -69,12 +89,46 @@ export function AttendanceForm({
                       ))}
                     </select>
                   </td>
-                  <td className="hidden px-4 py-3 sm:table-cell">
+                  {hasFee ? (
+                    <td className="px-3 py-3">
+                      <select
+                        name={`payment_${member.id}`}
+                        defaultValue={member.payment_status}
+                        className="w-full min-w-[7rem] rounded-md border border-[var(--border)] bg-white px-2 py-1.5"
+                      >
+                        {payments.map((p) => (
+                          <option key={p} value={p}>
+                            {paymentLabel[p]}
+                          </option>
+                        ))}
+                      </select>
+                    </td>
+                  ) : (
+                    <input
+                      type="hidden"
+                      name={`payment_${member.id}`}
+                      value={member.payment_status}
+                    />
+                  )}
+                  <td className="px-3 py-3 text-xs">
+                    {member.confirmation
+                      ? confirmationLabel[member.confirmation]
+                      : "—"}
+                  </td>
+                  <td className="px-3 py-3 text-xs">
+                    {member.authorization
+                      ? authorizationLabel[member.authorization]
+                      : "—"}
+                  </td>
+                  <td className="px-3 py-3 tabular-nums text-xs text-[var(--muted)]">
+                    {member.frequencyPct == null ? "—" : `${member.frequencyPct}%`}
+                  </td>
+                  <td className="px-3 py-3">
                     <input
                       name={`notes_${member.id}`}
                       defaultValue={member.notes}
                       placeholder="Opzionale"
-                      className="w-full rounded-md border border-[var(--border)] px-2 py-1.5"
+                      className="w-full min-w-[8rem] rounded-md border border-[var(--border)] px-2 py-1.5"
                     />
                   </td>
                 </tr>
@@ -89,7 +143,7 @@ export function AttendanceForm({
         disabled={pending || members.length === 0}
         className="rounded-md bg-[var(--forest)] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[var(--forest-deep)] disabled:opacity-60"
       >
-        {pending ? "Salvataggio…" : "Salva Presenze"}
+        {pending ? "Salvataggio…" : "Salva registro"}
       </button>
     </form>
   );
