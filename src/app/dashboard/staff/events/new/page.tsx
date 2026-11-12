@@ -1,20 +1,33 @@
 import Link from "next/link";
 import { connection } from "next/server";
-import { DashboardShell } from "@/components/dashboard-shell";
+import { StaffShell } from "@/components/staff-shell";
 import { requireRole } from "@/lib/auth";
-import { eventTypeLabel, eventTypeOptions } from "@/lib/labels";
+import {
+  cocaEventTypeLabel,
+  cocaEventTypeOptions,
+  eventTypeLabel,
+  eventTypeOptions,
+} from "@/lib/labels";
+import { isCocaUnit } from "@/lib/staff-unit";
 import { createEventAction } from "../../actions";
 
 export default async function NewEventPage() {
   await connection();
-  const { unit, roles, activeRole } = await requireRole(["leader"]);
+  const { unit, roles, activeRole, availableUnits } = await requireRole([
+    "leader",
+  ]);
+  const coca = isCocaUnit(unit);
+  const options = coca ? cocaEventTypeOptions : eventTypeOptions;
+  const labels = coca ? cocaEventTypeLabel : eventTypeLabel;
 
   return (
-    <DashboardShell
-      title="Nuova uscita"
+    <StaffShell
+      title={coca ? "Nuovo appuntamento Co.Ca." : "Nuova uscita"}
       subtitle={unit ? unit.name : "Unità"}
       activeRole={activeRole}
       roles={roles}
+      unit={unit}
+      availableUnits={availableUnits}
       headerActions={
         <Link href="/dashboard/staff/calendario" className="text-sm font-medium text-[var(--forest)]">
           ← Calendario
@@ -30,7 +43,11 @@ export default async function NewEventPage() {
           <input
             name="title"
             required
-            placeholder="Es. Uscita domenicale al bosco"
+            placeholder={
+              coca
+                ? "Es. Riunione Co.Ca. di marzo"
+                : "Es. Uscita domenicale al bosco"
+            }
             className="w-full rounded-md border border-[var(--border)] px-3 py-2 outline-none ring-[var(--ring)] focus:ring-2"
           />
         </label>
@@ -42,9 +59,9 @@ export default async function NewEventPage() {
             defaultValue="meeting"
             className="w-full rounded-md border border-[var(--border)] px-3 py-2"
           >
-            {eventTypeOptions.map((type) => (
+            {options.map((type) => (
               <option key={type} value={type}>
-                {eventTypeLabel[type]}
+                {labels[type]}
               </option>
             ))}
           </select>
@@ -102,10 +119,17 @@ export default async function NewEventPage() {
         </label>
 
         <label className="block text-sm">
-          <span className="mb-1 block font-medium">Descrizione (opzionale)</span>
+          <span className="mb-1 block font-medium">
+            {coca ? "Verbale / note condivise" : "Descrizione (opzionale)"}
+          </span>
           <textarea
             name="description"
-            rows={2}
+            rows={coca ? 4 : 2}
+            placeholder={
+              coca
+                ? "Appunti di riunione, decisioni, prossimi passi…"
+                : undefined
+            }
             className="w-full rounded-md border border-[var(--border)] px-3 py-2 outline-none ring-[var(--ring)] focus:ring-2"
           />
         </label>
@@ -114,9 +138,9 @@ export default async function NewEventPage() {
           type="submit"
           className="rounded-md bg-[var(--forest)] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[var(--forest-deep)]"
         >
-          Crea e apri Presenze
+          {coca ? "Crea e apri registro" : "Crea e apri Presenze"}
         </button>
       </form>
-    </DashboardShell>
+    </StaffShell>
   );
 }

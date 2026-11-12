@@ -3,10 +3,11 @@
 import { revalidatePath } from "next/cache";
 import { requireRole } from "@/lib/auth";
 import type { AnnouncementAudience } from "@/lib/types";
+import { staffUnitId } from "@/lib/staff-unit";
 
 export async function createAnnouncementAction(formData: FormData) {
   const { profile, supabase } = await requireRole(["leader"]);
-  if (!profile.unit_id) throw new Error("Capo senza unità.");
+  if (!staffUnitId(profile)) throw new Error("Capo senza unità.");
 
   const title = String(formData.get("title") ?? "").trim();
   const body = String(formData.get("body") ?? "").trim();
@@ -25,7 +26,7 @@ export async function createAnnouncementAction(formData: FormData) {
   }
 
   const { error } = await supabase.from("announcements").insert({
-    unit_id: profile.unit_id,
+    unit_id: staffUnitId(profile),
     subgroup_id,
     audience,
     title,
@@ -48,7 +49,7 @@ export async function deleteAnnouncementAction(formData: FormData) {
     .from("announcements")
     .delete()
     .eq("id", id)
-    .eq("unit_id", profile.unit_id ?? "");
+    .eq("unit_id", staffUnitId(profile) ?? "");
   if (error) throw new Error(error.message);
 
   revalidatePath("/dashboard/staff/bacheca");

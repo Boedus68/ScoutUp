@@ -2,10 +2,11 @@ import Image from "next/image";
 import Link from "next/link";
 import { LogoutButton } from "@/components/logout-button";
 import { RoleSwitcher } from "@/components/role-switcher";
+import { UnitSwitcher } from "@/components/unit-switcher";
 import { SidebarNav } from "@/components/sidebar-nav";
 import { navItemsForRole } from "@/lib/nav";
 import { roleLabel } from "@/lib/labels";
-import type { AppRole } from "@/lib/types";
+import type { AppRole, Unit } from "@/lib/types";
 
 type DashboardShellProps = {
   title: string;
@@ -14,6 +15,10 @@ type DashboardShellProps = {
   roles: AppRole[];
   children: React.ReactNode;
   headerActions?: React.ReactNode;
+  /** Unità disponibili per lo switcher Capo (servizio + Co.Ca.). */
+  availableUnits?: Unit[];
+  activeUnitId?: string | null;
+  activeBranch?: Unit["branch"] | null;
 };
 
 export function DashboardShell({
@@ -23,8 +28,11 @@ export function DashboardShell({
   roles,
   children,
   headerActions,
+  availableUnits = [],
+  activeUnitId = null,
+  activeBranch = null,
 }: DashboardShellProps) {
-  const items = navItemsForRole(activeRole);
+  const items = navItemsForRole(activeRole, activeBranch);
 
   return (
     <div className="min-h-full">
@@ -46,6 +54,7 @@ export function DashboardShell({
               </Link>
               <p className="mt-2 text-xs font-medium uppercase tracking-[0.14em] text-[var(--muted)]">
                 {roleLabel[activeRole]}
+                {activeBranch === "COCA" ? " · Co.Ca." : ""}
               </p>
               <div
                 className="uniform-stripe mt-3 h-1 w-full rounded-sm"
@@ -56,6 +65,12 @@ export function DashboardShell({
             <SidebarNav items={items} />
 
             <div className="mt-auto space-y-4 border-t border-[var(--border)] pt-4">
+              {activeRole === "leader" && availableUnits.length > 0 ? (
+                <UnitSwitcher
+                  units={availableUnits}
+                  activeUnitId={activeUnitId}
+                />
+              ) : null}
               <RoleSwitcher roles={roles} activeRole={activeRole} />
               <LogoutButton />
             </div>

@@ -3,10 +3,11 @@
 import { revalidatePath } from "next/cache";
 import { requireRole } from "@/lib/auth";
 import type { CashEntryKind, FeeStatus } from "@/lib/types";
+import { staffUnitId } from "@/lib/staff-unit";
 
 export async function createAnnualFeeAction(formData: FormData) {
   const { profile, supabase } = await requireRole(["leader"]);
-  if (!profile.unit_id) throw new Error("Capo senza unità.");
+  if (!staffUnitId(profile)) throw new Error("Capo senza unità.");
 
   const member_id = String(formData.get("member_id") ?? "").trim();
   const title = String(formData.get("title") ?? "").trim();
@@ -19,7 +20,7 @@ export async function createAnnualFeeAction(formData: FormData) {
   }
 
   const { error } = await supabase.from("annual_fees").insert({
-    unit_id: profile.unit_id,
+    unit_id: staffUnitId(profile),
     member_id,
     title,
     amount,
@@ -47,7 +48,7 @@ export async function updateFeeStatusAction(formData: FormData) {
     .from("annual_fees")
     .update({ status })
     .eq("id", id)
-    .eq("unit_id", profile.unit_id ?? "");
+    .eq("unit_id", staffUnitId(profile) ?? "");
   if (error) throw new Error(error.message);
 
   revalidatePath("/dashboard/staff/cassa");
@@ -57,7 +58,7 @@ export async function updateFeeStatusAction(formData: FormData) {
 
 export async function createCashEntryAction(formData: FormData) {
   const { profile, supabase } = await requireRole(["leader"]);
-  if (!profile.unit_id) throw new Error("Capo senza unità.");
+  if (!staffUnitId(profile)) throw new Error("Capo senza unità.");
 
   const kind = String(formData.get("kind") ?? "") as CashEntryKind;
   const title = String(formData.get("title") ?? "").trim();
@@ -74,7 +75,7 @@ export async function createCashEntryAction(formData: FormData) {
   }
 
   const { error } = await supabase.from("cash_entries").insert({
-    unit_id: profile.unit_id,
+    unit_id: staffUnitId(profile),
     kind,
     title,
     amount,
@@ -97,7 +98,7 @@ export async function deleteCashEntryAction(formData: FormData) {
     .from("cash_entries")
     .delete()
     .eq("id", id)
-    .eq("unit_id", profile.unit_id ?? "");
+    .eq("unit_id", staffUnitId(profile) ?? "");
   if (error) throw new Error(error.message);
 
   revalidatePath("/dashboard/staff/cassa");

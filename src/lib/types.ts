@@ -1,7 +1,20 @@
 export type AppRole = "leader" | "member" | "parent";
-export type ScoutBranch = "LC" | "EG" | "RS";
+export type ScoutBranch = "LC" | "EG" | "RS" | "COCA";
+export type CocaGroupRole =
+  | "capo_gruppo"
+  | "tesoriere"
+  | "segretario"
+  | "cambusiere"
+  | "maestro_novizi"
+  | "capo_unita";
 export type AttendanceStatus = "present" | "absent" | "justified" | "late";
-export type EventType = "meeting" | "overnight" | "camp" | "route" | "council";
+export type EventType =
+  | "meeting"
+  | "overnight"
+  | "camp"
+  | "route"
+  | "council"
+  | "formation";
 export type PaymentStatus = "unpaid" | "paid" | "waived";
 export type ConfirmationStatus = "pending" | "attending" | "not_attending";
 export type AuthorizationStatus = "pending" | "authorized" | "revoked";
@@ -35,10 +48,14 @@ export type Profile = {
   role: AppRole;
   active_role: AppRole | null;
   unit_id: string | null;
+  /** Contesto UI Capo: unità di servizio o Co.Ca. del gruppo. */
+  active_unit_id: string | null;
   subgroup_id: string | null;
   totem: string | null;
   phone: string | null;
   birth_date: string | null;
+  /** Incarico in Comunità Capi / Gruppo. */
+  group_role: CocaGroupRole | null;
   created_at?: string;
   updated_at?: string;
 };
@@ -115,6 +132,8 @@ export type ProgressionItem = {
   decided_at: string | null;
   decided_by: string | null;
   assigned_by: string | null;
+  held_at: string | null;
+  location: string | null;
 };
 
 export type StaffNote = {

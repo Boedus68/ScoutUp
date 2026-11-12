@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { connection } from "next/server";
 import { notFound } from "next/navigation";
-import { DashboardShell } from "@/components/dashboard-shell";
+import { StaffShell } from "@/components/staff-shell";
 import {
   FascicoloDocument,
   type FascicoloMember,
@@ -10,6 +10,7 @@ import { PrintButton } from "@/components/print-button";
 import { requireRole } from "@/lib/auth";
 import { eventTypeLabel, formatDateTime } from "@/lib/labels";
 import type { EventType, MedicalRecord } from "@/lib/types";
+import { staffUnitId } from "@/lib/staff-unit";
 
 type PageProps = {
   params: Promise<{ id: string }>;
@@ -18,7 +19,7 @@ type PageProps = {
 export default async function EventFascicoloPage({ params }: PageProps) {
   await connection();
   const { id } = await params;
-  const { profile, unit, roles, activeRole, supabase } = await requireRole([
+  const { profile, unit, roles, activeRole, supabase, availableUnits} = await requireRole([
     "leader",
   ]);
 
@@ -28,14 +29,14 @@ export default async function EventFascicoloPage({ params }: PageProps) {
     .eq("id", id)
     .maybeSingle();
 
-  if (!event || event.unit_id !== profile.unit_id) {
+  if (!event || event.unit_id !== staffUnitId(profile)) {
     notFound();
   }
 
   const { data: members } = await supabase
     .from("profiles")
     .select("id, full_name, totem")
-    .eq("unit_id", profile.unit_id ?? "")
+    .eq("unit_id", staffUnitId(profile) ?? "")
     .eq("role", "member")
     .order("full_name");
 
@@ -59,11 +60,13 @@ export default async function EventFascicoloPage({ params }: PageProps) {
   const type = (event.event_type as EventType | undefined) ?? "meeting";
 
   return (
-    <DashboardShell
+    <StaffShell
       title="Fascicolo sicurezza"
       subtitle={event.title}
       activeRole={activeRole}
       roles={roles}
+      unit={unit}
+      availableUnits={availableUnits}
       headerActions={
         <div className="no-print flex items-center gap-3">
           <PrintButton />
@@ -85,6 +88,6 @@ export default async function EventFascicoloPage({ params }: PageProps) {
         members={rows}
         generatedAt={formatDateTime(new Date().toISOString())}
       />
-    </DashboardShell>
+    </StaffShell>
   );
 }

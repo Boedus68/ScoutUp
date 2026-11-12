@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/config";
+import { staffUnitId } from "@/lib/staff-unit";
 import type { AppRole, Profile, Unit } from "@/lib/types";
 
 export function dashboardPathForRole(role: AppRole) {
@@ -26,6 +27,29 @@ export async function requireConfiguredSupabase() {
   }
 }
 
+async function loadLeaderUnits(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  serviceUnit: Unit | null,
+): Promise<Unit[]> {
+  if (!serviceUnit) return [];
+
+  const units: Unit[] = [serviceUnit];
+
+  if (serviceUnit.group_id && serviceUnit.branch !== "COCA") {
+    const { data: coca } = await supabase
+      .from("units")
+      .select("*")
+      .eq("group_id", serviceUnit.group_id)
+      .eq("branch", "COCA")
+      .maybeSingle();
+    if (coca) {
+      units.push(coca as Unit);
+    }
+  }
+
+  return units;
+}
+
 export async function getSessionProfile() {
   await requireConfiguredSupabase();
   const supabase = await createClient();
@@ -38,6 +62,8 @@ export async function getSessionProfile() {
       user: null,
       profile: null,
       unit: null,
+      serviceUnit: null,
+      availableUnits: [] as Unit[],
       roles: [] as AppRole[],
       supabase,
     };
@@ -59,20 +85,43 @@ export async function getSessionProfile() {
     roles.push(profile.role as AppRole);
   }
 
-  let unit: Unit | null = null;
-  if (profile?.unit_id) {
+  const typedProfile = profile as Profile | null;
+
+  let serviceUnit: Unit | null = null;
+  if (typedProfile?.unit_id) {
     const { data } = await supabase
       .from("units")
       .select("*")
-      .eq("id", profile.unit_id)
+      .eq("id", typedProfile.unit_id)
       .maybeSingle();
-    unit = data as Unit | null;
+    serviceUnit = data as Unit | null;
+  }
+
+  const availableUnits =
+    typedProfile && roles.includes("leader")
+      ? await loadLeaderUnits(supabase, serviceUnit)
+      : serviceUnit
+        ? [serviceUnit]
+        : [];
+
+  const activeId = typedProfile ? staffUnitId(typedProfile) : null;
+  let unit: Unit | null =
+    availableUnits.find((u) => u.id === activeId) ?? serviceUnit;
+
+  // Se active_unit_id punta a un'unità non più accessibile, ricadi sul servizio.
+  if (
+    typedProfile?.active_unit_id &&
+    !availableUnits.some((u) => u.id === typedProfile.active_unit_id)
+  ) {
+    unit = serviceUnit;
   }
 
   return {
     user,
-    profile: profile as Profile | null,
+    profile: typedProfile,
     unit,
+    serviceUnit,
+    availableUnits,
     roles,
     supabase,
   };

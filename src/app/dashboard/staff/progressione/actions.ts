@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { requireRole } from "@/lib/auth";
 import type { ProgressionKind, ScoutBranch } from "@/lib/types";
+import { staffUnitId } from "@/lib/staff-unit";
 
 async function assertLeaderOfMember(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -38,7 +39,7 @@ export async function decideProgressionAction(formData: FormData) {
     .eq("id", itemId)
     .maybeSingle();
   if (!item) throw new Error("Item non trovato.");
-  await assertLeaderOfMember(supabase, profile.unit_id, item.member_id);
+  await assertLeaderOfMember(supabase, staffUnitId(profile), item.member_id);
 
   const { error } = await supabase
     .from("progression_items")
@@ -66,7 +67,7 @@ export async function assignProgressionAction(formData: FormData) {
   const kind = String(formData.get("kind") ?? "") as ProgressionKind;
   const asConquered = formData.get("as_conquered") === "on";
 
-  await assertLeaderOfMember(supabase, profile.unit_id, memberId);
+  await assertLeaderOfMember(supabase, staffUnitId(profile), memberId);
 
   let finalTitle = title;
   let finalKind = kind;
@@ -111,7 +112,7 @@ export async function addStaffNoteAction(formData: FormData) {
   const memberId = String(formData.get("member_id") ?? "");
   const body = String(formData.get("body") ?? "").trim();
   if (!body) throw new Error("Nota vuota.");
-  await assertLeaderOfMember(supabase, profile.unit_id, memberId);
+  await assertLeaderOfMember(supabase, staffUnitId(profile), memberId);
 
   const { error } = await supabase.from("staff_notes").insert({
     member_id: memberId,

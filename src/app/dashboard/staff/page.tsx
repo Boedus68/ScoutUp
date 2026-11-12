@@ -1,28 +1,36 @@
 import Link from "next/link";
 import { connection } from "next/server";
-import { DashboardShell } from "@/components/dashboard-shell";
+import { StaffShell } from "@/components/staff-shell";
 import { requireRole } from "@/lib/auth";
-import { branchLabel, eventTypeLabel, formatDateTime } from "@/lib/labels";
+import {
+  branchLabel,
+  cocaEventTypeLabel,
+  eventTypeLabel,
+  formatDateTime,
+} from "@/lib/labels";
 import type { EventType } from "@/lib/types";
+import { isCocaUnit, staffUnitId } from "@/lib/staff-unit";
 
 export default async function StaffDashboardPage() {
   await connection();
-  const { profile, unit, roles, activeRole, supabase } = await requireRole([
-    "leader",
-  ]);
+  const { profile, unit, roles, activeRole, supabase, availableUnits } =
+    await requireRole(["leader"]);
+
+  const coca = isCocaUnit(unit);
+  const typeLabel = coca ? cocaEventTypeLabel : eventTypeLabel;
 
   const nowIso = new Date().toISOString();
   const { data: events } = await supabase
     .from("events")
     .select("id, title, starts_at, location, event_type")
-    .eq("unit_id", profile.unit_id ?? "")
+    .eq("unit_id", staffUnitId(profile) ?? "")
     .gte("starts_at", nowIso)
     .order("starts_at", { ascending: true })
     .limit(8);
 
   return (
-    <DashboardShell
-      title="Panoramica capo"
+    <StaffShell
+      title={coca ? "Panoramica Co.Ca." : "Panoramica capo"}
       subtitle={
         unit
           ? `${unit.name} · ${branchLabel[unit.branch]}${
@@ -32,21 +40,58 @@ export default async function StaffDashboardPage() {
       }
       activeRole={activeRole}
       roles={roles}
+      unit={unit}
+      availableUnits={availableUnits}
       headerActions={
         <Link
           href="/dashboard/staff/events/new"
           className="rounded-md bg-[var(--forest)] px-3 py-1.5 text-sm font-semibold text-white"
         >
-          Nuova uscita
+          {coca ? "Nuovo appuntamento" : "Nuova uscita"}
         </Link>
       }
     >
+      {coca ? (
+        <section className="mb-6 grid gap-3 sm:grid-cols-3">
+          <Link
+            href="/dashboard/staff/calendario"
+            className="rounded-xl border border-[var(--border)] bg-white px-4 py-4 hover:bg-[var(--surface-muted)]"
+          >
+            <p className="font-semibold">Appuntamenti di Co.Ca.</p>
+            <p className="mt-1 text-sm text-[var(--muted)]">
+              Riunioni, uscite, consigli e formazione.
+            </p>
+          </Link>
+          <Link
+            href="/dashboard/staff/percorso-formativo"
+            className="rounded-xl border border-[var(--border)] bg-white px-4 py-4 hover:bg-[var(--surface-muted)]"
+          >
+            <p className="font-semibold">Il Mio Percorso Formativo</p>
+            <p className="mt-1 text-sm text-[var(--muted)]">
+              CFT, CFM, CFA e Nomina a Capo.
+            </p>
+          </Link>
+          <Link
+            href="/dashboard/staff/bacheca"
+            className="rounded-xl border border-[var(--border)] bg-white px-4 py-4 hover:bg-[var(--surface-muted)]"
+          >
+            <p className="font-semibold">Bacheca & Documenti</p>
+            <p className="mt-1 text-sm text-[var(--muted)]">
+              PE, verbali e cassa di Gruppo.
+            </p>
+          </Link>
+        </section>
+      ) : null}
       <section>
         <div className="mb-3 flex items-end justify-between gap-3">
           <div>
-            <h2 className="text-lg font-semibold">Prossime uscite</h2>
+            <h2 className="text-lg font-semibold">
+              {coca ? "Prossimi appuntamenti" : "Prossime uscite"}
+            </h2>
             <p className="text-sm text-[var(--muted)]">
-              Apri il registro Presenze / quote / autorizzazioni.
+              {coca
+                ? "Registro presenze e note condivise tra capi."
+                : "Apri il registro Presenze / quote / autorizzazioni."}
             </p>
           </div>
           <Link
@@ -59,7 +104,9 @@ export default async function StaffDashboardPage() {
         <ul className="divide-y divide-[var(--border)] overflow-hidden rounded-xl border border-[var(--border)] bg-white">
           {(events ?? []).length === 0 ? (
             <li className="px-4 py-8 text-sm text-[var(--muted)]">
-              Nessuna uscita in programma.
+              {coca
+                ? "Nessun appuntamento in programma."
+                : "Nessuna uscita in programma."}
             </li>
           ) : (
             (events ?? []).map((event) => {
@@ -74,7 +121,7 @@ export default async function StaffDashboardPage() {
                     <div>
                       <p className="font-semibold">{event.title}</p>
                       <p className="text-sm text-[var(--muted)]">
-                        {eventTypeLabel[type]} · {formatDateTime(event.starts_at)}
+                        {typeLabel[type]} · {formatDateTime(event.starts_at)}
                         {event.location ? ` · ${event.location}` : ""}
                       </p>
                     </div>
@@ -88,6 +135,6 @@ export default async function StaffDashboardPage() {
           )}
         </ul>
       </section>
-    </DashboardShell>
+    </StaffShell>
   );
 }

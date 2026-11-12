@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { connection } from "next/server";
 import { notFound } from "next/navigation";
-import { DashboardShell } from "@/components/dashboard-shell";
+import { StaffShell } from "@/components/staff-shell";
 import { requireRole } from "@/lib/auth";
 import {
   eventTypeLabel,
@@ -18,6 +18,7 @@ import type {
 } from "@/lib/types";
 import { OfflineEventCache } from "@/components/offline-event-cache";
 import { AttendanceForm } from "./attendance-form";
+import { staffUnitId } from "@/lib/staff-unit";
 
 type PageProps = {
   params: Promise<{ id: string }>;
@@ -26,7 +27,7 @@ type PageProps = {
 export default async function PresenzePage({ params }: PageProps) {
   await connection();
   const { id } = await params;
-  const { profile, roles, activeRole, supabase } = await requireRole(["leader"]);
+  const { profile, roles, activeRole, supabase, availableUnits, unit} = await requireRole(["leader"]);
 
   const { data: event } = await supabase
     .from("events")
@@ -34,16 +35,38 @@ export default async function PresenzePage({ params }: PageProps) {
     .eq("id", id)
     .maybeSingle();
 
-  if (!event || event.unit_id !== profile.unit_id) {
+  if (!event || event.unit_id !== staffUnitId(profile)) {
     notFound();
   }
 
-  const { data: members } = await supabase
-    .from("profiles")
-    .select("id, full_name")
-    .eq("unit_id", profile.unit_id ?? "")
-    .eq("role", "member")
-    .order("full_name");
+  const isCoca = unit?.branch === "COCA";
+  let members: { id: string; full_name: string }[] | null = null;
+
+  if (isCoca && unit?.group_id) {
+    const { data: groupUnits } = await supabase
+      .from("units")
+      .select("id")
+      .eq("group_id", unit.group_id);
+    const unitIds = (groupUnits ?? []).map((u) => u.id);
+    const { data: leaders } =
+      unitIds.length > 0
+        ? await supabase
+            .from("profiles")
+            .select("id, full_name")
+            .eq("role", "leader")
+            .in("unit_id", unitIds)
+            .order("full_name")
+        : { data: [] as { id: string; full_name: string }[] };
+    members = leaders;
+  } else {
+    const { data } = await supabase
+      .from("profiles")
+      .select("id, full_name")
+      .eq("unit_id", staffUnitId(profile) ?? "")
+      .eq("role", "member")
+      .order("full_name");
+    members = data;
+  }
 
   const memberIds = (members ?? []).map((m) => m.id);
 
@@ -86,7 +109,7 @@ export default async function PresenzePage({ params }: PageProps) {
           .from("attendances")
           .select("member_id, status, event_id, events!inner(unit_id)")
           .in("member_id", memberIds)
-          .eq("events.unit_id", profile.unit_id ?? "")
+          .eq("events.unit_id", staffUnitId(profile) ?? "")
       : {
           data: [] as {
             member_id: string;
@@ -137,13 +160,15 @@ export default async function PresenzePage({ params }: PageProps) {
   const eventType = (event.event_type as EventType | undefined) ?? "meeting";
 
   return (
-    <DashboardShell
+    <StaffShell
       title="Registro Presenze"
       subtitle={`${event.title} · ${eventTypeLabel[eventType]} · ${formatDateTime(event.starts_at)}${
         event.location ? ` · ${event.location}` : ""
       }`}
       activeRole={activeRole}
       roles={roles}
+      unit={unit}
+      availableUnits={availableUnits}
       headerActions={
         <div className="flex flex-wrap items-center gap-3">
           <Link
@@ -187,6 +212,6 @@ export default async function PresenzePage({ params }: PageProps) {
         members={rows}
         hasFee={event.fee_amount != null && Number(event.fee_amount) > 0}
       />
-    </DashboardShell>
+    </StaffShell>
   );
 }
