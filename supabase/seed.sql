@@ -1,7 +1,7 @@
 -- =============================================================================
 -- Scout-Up Fase 1 — seed demo (Gruppo + Reparto Sirio EG)
 -- =============================================================================
--- PREREQUISITO: migration 20261112_fase1_struttura_associativa.sql già applicata.
+-- PREREQUISITO: migration 20261112010000_fase1_struttura_associativa.sql già applicata.
 --
 -- Gli UUID sotto sono FISSI. Crea gli utenti in Supabase → Authentication → Users
 -- (email+password a tua scelta) OPPURE inserisci in auth.users via SQL Editor
