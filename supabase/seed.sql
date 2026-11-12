@@ -120,6 +120,11 @@ SELECT DISTINCT parent_id, 'parent'::public.app_role FROM public.parent_child
 WHERE parent_id = '11111111-1111-1111-1111-111111111101'
 ON CONFLICT DO NOTHING;
 
+-- Demo multi-ruolo completo: capo1 vede Capo + Ragazzo + Genitore nello switcher
+INSERT INTO public.role_memberships (user_id, role)
+VALUES ('11111111-1111-1111-1111-111111111101', 'member')
+ON CONFLICT DO NOTHING;
+
 -- Demo Co.Ca.: riunione + documenti (solo se i profili capo esistono)
 INSERT INTO public.events (
   id, unit_id, title, starts_at, ends_at, location, description,

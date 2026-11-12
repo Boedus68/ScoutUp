@@ -13,13 +13,8 @@ function revalidateStaffTrees() {
   revalidatePath("/dashboard/member", "layout");
 }
 
-export async function setActiveRoleAction(formData: FormData) {
-  const role = String(formData.get("role") ?? "") as AppRole;
-  if (!["leader", "member", "parent"].includes(role)) {
-    throw new Error("Ruolo non valido.");
-  }
-
-  const { user, supabase } = await requireUser();
+async function assertCanActivateRole(role: AppRole) {
+  const { user, profile, supabase } = await requireUser();
 
   const { data: membership } = await supabase
     .from("role_memberships")
@@ -28,14 +23,34 @@ export async function setActiveRoleAction(formData: FormData) {
     .eq("role", role)
     .maybeSingle();
 
-  if (!membership) {
+  // Membership esplicita, oppure ruolo primario del profilo (sync mancante).
+  if (!membership && profile?.role !== role) {
     throw new Error("Non hai questo ruolo.");
   }
+
+  return { user: user!, profile, supabase };
+}
+
+export async function setActiveRoleAction(formData: FormData) {
+  const role = String(formData.get("role") ?? "") as AppRole;
+  if (!["leader", "member", "parent"].includes(role)) {
+    throw new Error("Ruolo non valido.");
+  }
+
+  const { user, supabase } = await assertCanActivateRole(role);
+
+  // Assicura la riga in role_memberships (ignore se già presente).
+  await supabase
+    .from("role_memberships")
+    .upsert(
+      { user_id: user.id, role },
+      { onConflict: "user_id,role", ignoreDuplicates: true },
+    );
 
   const { error } = await supabase
     .from("profiles")
     .update({ active_role: role })
-    .eq("id", user!.id);
+    .eq("id", user.id);
 
   if (error) {
     throw new Error(error.message);
@@ -52,23 +67,19 @@ export async function switchActiveRoleAction(formData: FormData): Promise<string
     throw new Error("Ruolo non valido.");
   }
 
-  const { user, supabase } = await requireUser();
+  const { user, supabase } = await assertCanActivateRole(role);
 
-  const { data: membership } = await supabase
+  await supabase
     .from("role_memberships")
-    .select("role")
-    .eq("user_id", user!.id)
-    .eq("role", role)
-    .maybeSingle();
-
-  if (!membership) {
-    throw new Error("Non hai questo ruolo.");
-  }
+    .upsert(
+      { user_id: user.id, role },
+      { onConflict: "user_id,role", ignoreDuplicates: true },
+    );
 
   const { error } = await supabase
     .from("profiles")
     .update({ active_role: role })
-    .eq("id", user!.id);
+    .eq("id", user.id);
 
   if (error) {
     throw new Error(error.message);

@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/config";
+import { sortAppRoles } from "@/lib/labels";
 import { staffUnitId } from "@/lib/staff-unit";
 import type { AppRole, Profile, Unit } from "@/lib/types";
 
@@ -80,12 +81,14 @@ export async function getSessionProfile() {
     .select("role")
     .eq("user_id", user.id);
 
-  const roles = (memberships ?? []).map((row) => row.role as AppRole);
-  if (profile && roles.length === 0) {
-    roles.push(profile.role as AppRole);
-  }
-
   const typedProfile = profile as Profile | null;
+
+  // Union memberships + ruolo primario (così "member"/Ragazzo non sparisce
+  // se manca solo la sync su role_memberships, e l'ordine resta stabile).
+  const roles = sortAppRoles([
+    ...((memberships ?? []).map((row) => row.role as AppRole)),
+    ...(typedProfile ? [typedProfile.role as AppRole] : []),
+  ]);
 
   let serviceUnit: Unit | null = null;
   if (typedProfile?.unit_id) {

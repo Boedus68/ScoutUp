@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import { switchActiveRoleAction } from "@/app/dashboard/actions";
-import { roleLabel } from "@/lib/labels";
+import { roleSwitcherLabel, sortAppRoles } from "@/lib/labels";
 import type { AppRole } from "@/lib/types";
 
 export function RoleSwitcher({
@@ -15,13 +15,14 @@ export function RoleSwitcher({
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
+  const ordered = sortAppRoles(roles);
 
-  if (roles.length <= 1) {
+  if (ordered.length <= 1) {
     return (
       <p className="rounded-md bg-[var(--surface-muted)] px-3 py-2 text-xs text-[var(--muted)]">
         Contesto:{" "}
         <span className="font-semibold text-[var(--ink)]">
-          {roleLabel[activeRole]}
+          {roleSwitcherLabel[activeRole]}
         </span>
       </p>
     );
@@ -49,9 +50,9 @@ export function RoleSwitcher({
         key={activeRole}
         className="w-full rounded-md border border-[var(--border)] bg-white px-2 py-2 text-sm"
       >
-        {roles.map((role) => (
+        {ordered.map((role) => (
           <option key={role} value={role}>
-            {roleLabel[role]}
+            {roleSwitcherLabel[role]}
           </option>
         ))}
       </select>
