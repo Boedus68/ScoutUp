@@ -1,6 +1,8 @@
 -- =============================================================================
 -- Scout-Up — Comunità Capi (COCA): colonne, RLS, catalogo formativo
--- Prerequisito: 20261118_coca_enum.sql (valori enum COCA / formation già commitati)
+-- Prerequisito: 20261118_coca_enum.sql già eseguito E COMMITATO
+--   (altrimenti: unsafe use of new value "COCA" / invalid input value for enum).
+-- SQL Editor (tutto-in-uno): supabase/sql_editor_coca_comunita_capi.sql
 -- =============================================================================
 
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
@@ -83,7 +85,7 @@ AS $$
     SELECT 1
     FROM public.units u
     WHERE u.id = p_unit_id
-      AND u.branch = 'COCA'
+      AND u.branch::text = 'COCA'
   );
 $$;
 
@@ -183,7 +185,7 @@ CREATE POLICY units_select ON public.units
       OR id IN (SELECT public.child_unit_ids())
     )
     AND (
-      branch <> 'COCA'
+      branch::text <> 'COCA'
       OR public.is_leader()
     )
   );
