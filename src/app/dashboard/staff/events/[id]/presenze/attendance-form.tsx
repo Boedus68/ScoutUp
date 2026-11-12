@@ -1,6 +1,7 @@
 "use client";
 
 import { useTransition } from "react";
+import { MedicalAlertBadge } from "@/components/medical-alert";
 import {
   attendanceLabel,
   authorizationLabel,
@@ -11,6 +12,7 @@ import type {
   AttendanceStatus,
   AuthorizationStatus,
   ConfirmationStatus,
+  MedicalRecord,
   PaymentStatus,
 } from "@/lib/types";
 import { saveAttendancesAction } from "../../../actions";
@@ -24,6 +26,7 @@ type MemberRow = {
   confirmation: ConfirmationStatus | null;
   authorization: AuthorizationStatus | null;
   frequencyPct: number | null;
+  medical: MedicalRecord | null;
 };
 
 const statuses: AttendanceStatus[] = ["present", "absent", "justified", "late"];
@@ -39,6 +42,7 @@ export function AttendanceForm({
   hasFee: boolean;
 }) {
   const [pending, startTransition] = useTransition();
+  const criticalCount = members.filter((m) => m.medical?.criticality_flag).length;
 
   return (
     <form
@@ -49,6 +53,14 @@ export function AttendanceForm({
       }}
       className="space-y-4"
     >
+      {criticalCount > 0 ? (
+        <p className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-950">
+          <strong>{criticalCount}</strong> ragazz
+          {criticalCount === 1 ? "o/a" : "i/e"} con{" "}
+          <strong>allerta sanitaria</strong>. Clicca il badge rosso per i dettagli.
+        </p>
+      ) : null}
+
       <div className="overflow-x-auto rounded-xl border border-[var(--border)] bg-white">
         <table className="w-full min-w-[56rem] text-left text-sm">
           <thead className="bg-[var(--surface-muted)] text-[var(--muted)]">
@@ -73,7 +85,13 @@ export function AttendanceForm({
               members.map((member) => (
                 <tr key={member.id}>
                   <td className="px-3 py-3 font-medium">
-                    {member.full_name}
+                    <span className="inline-flex flex-wrap items-center gap-1">
+                      {member.full_name}
+                      <MedicalAlertBadge
+                        memberName={member.full_name}
+                        record={member.medical}
+                      />
+                    </span>
                     <input type="hidden" name="member_id" value={member.id} />
                   </td>
                   <td className="px-3 py-3">
@@ -121,7 +139,9 @@ export function AttendanceForm({
                       : "—"}
                   </td>
                   <td className="px-3 py-3 tabular-nums text-xs text-[var(--muted)]">
-                    {member.frequencyPct == null ? "—" : `${member.frequencyPct}%`}
+                    {member.frequencyPct == null
+                      ? "—"
+                      : `${member.frequencyPct}%`}
                   </td>
                   <td className="px-3 py-3">
                     <input

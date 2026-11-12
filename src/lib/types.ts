@@ -69,6 +69,22 @@ export type AttendanceRow = {
   updated_at?: string;
 };
 
+export type MedicalRecord = {
+  member_id: string;
+  food_allergies: string | null;
+  drug_allergies: string | null;
+  intolerances: string | null;
+  ongoing_therapy: string | null;
+  health_card_number: string | null;
+  blood_type: string | null;
+  emergency_contact_name: string | null;
+  emergency_contact_phone: string | null;
+  criticality_flag: boolean;
+  criticality_notes: string | null;
+  updated_by?: string | null;
+  updated_at?: string;
+};
+
 export type NavItem = {
   href: string;
   label: string;

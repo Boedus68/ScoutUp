@@ -13,6 +13,7 @@ import type {
   AuthorizationStatus,
   ConfirmationStatus,
   EventType,
+  MedicalRecord,
   PaymentStatus,
 } from "@/lib/types";
 import { AttendanceForm } from "./attendance-form";
@@ -68,6 +69,15 @@ export default async function PresenzePage({ params }: PageProps) {
           .in("member_id", memberIds)
       : { data: [] as { member_id: string; status: AuthorizationStatus }[] };
 
+  const { data: medicalRows } =
+    memberIds.length > 0
+      ? await supabase.from("medical_records").select("*").in("member_id", memberIds)
+      : { data: [] as MedicalRecord[] };
+
+  const medicalByMember = new Map(
+    (medicalRows ?? []).map((row) => [row.member_id, row as MedicalRecord]),
+  );
+
   // Frequenza: % present+late su eventi dell'unità con almeno un attendance del ragazzo
   const { data: history } =
     memberIds.length > 0
@@ -119,6 +129,7 @@ export default async function PresenzePage({ params }: PageProps) {
         freq && freq.total > 0
           ? Math.round((freq.presentish / freq.total) * 100)
           : null,
+      medical: medicalByMember.get(member.id) ?? null,
     };
   });
 
@@ -133,9 +144,20 @@ export default async function PresenzePage({ params }: PageProps) {
       activeRole={activeRole}
       roles={roles}
       headerActions={
-        <Link href="/dashboard/staff/calendario" className="text-sm font-medium text-[var(--forest)]">
-          ← Calendario
-        </Link>
+        <div className="flex flex-wrap items-center gap-3">
+          <Link
+            href={`/dashboard/staff/events/${event.id}/fascicolo-sicurezza`}
+            className="text-sm font-medium text-[var(--forest)]"
+          >
+            Fascicolo sicurezza
+          </Link>
+          <Link
+            href="/dashboard/staff/calendario"
+            className="text-sm font-medium text-[var(--forest)]"
+          >
+            ← Calendario
+          </Link>
+        </div>
       }
     >
       <div className="mb-6 grid gap-3 rounded-xl border border-[var(--border)] bg-white p-4 text-sm sm:grid-cols-3">
