@@ -15,7 +15,7 @@ Stack: **Next.js (App Router) + TypeScript + Tailwind + Supabase (`@supabase/ssr
 2. Incolla ed esegui il contenuto di:
 
 ```text
-supabase/migrations/20261111000000_scout_up_mvp.sql
+supabase/migrations/20261111_scout_up_mvp.sql
 ```
 
 (Lo stesso schema è documentato anche nel Context del progetto: `docs/supabase-schema-mvp.sql`.)
@@ -80,7 +80,7 @@ supabase/migrations/   # schema versionato
 
 Vedi guida: nel Context del progetto `docs/fase1-struttura-associativa.md`.
 
-- Migration: `supabase/migrations/20261112010000_fase1_struttura_associativa.sql`
+- Migration: `supabase/migrations/20261112_fase1_struttura_associativa.sql`
 - Seed demo: `supabase/seed.sql` (UUID fissi + istruzioni auth.users)
 - Menu laterale per ruolo + switcher se `role_memberships` ha più ruoli
 

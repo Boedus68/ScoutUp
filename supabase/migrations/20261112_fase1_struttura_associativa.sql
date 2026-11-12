@@ -1,6 +1,6 @@
 -- =============================================================================
 -- Scout-Up Fase 1 — struttura associativa, anagrafica, multi-ruolo
--- Incremental rispetto a 20261111000000_scout_up_mvp.sql. Idempotente dove pratico.
+-- Incremental rispetto a 20261111_scout_up_mvp.sql. Idempotente dove pratico.
 -- =============================================================================
 
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
