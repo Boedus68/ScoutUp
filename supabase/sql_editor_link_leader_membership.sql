@@ -1,85 +1,14 @@
 -- =============================================================================
--- Scout-Up — SQL Editor: collega un capo (bypass RLS) + RPC per l'app
+-- Scout-Up — SQL Editor: installa solo le RPC Collega capo
 --
--- Esegui in Supabase Dashboard → SQL Editor come ruolo **postgres**
--- (default). postgres bypassa RLS: è il percorso admin. Non usare
--- «Run as role» → authenticated (fallirebbe di nuovo su role_memberships).
+-- Esegui in Supabase Dashboard → SQL Editor come ruolo **postgres** (default).
+-- Idempotente. Nessun enum nuovo. Nessun INSERT su auth.users / profiles /
+-- role_memberships: non crea né collega utenti.
 --
--- user_id_by_email() richiede un JWT leader: da SQL Editor (auth.uid() NULL)
--- solleva «solo leader». Qui si legge auth.users direttamente.
---
--- Nessun enum nuovo: un solo run, idempotente.
+-- Copia store: docs/sql-editor-link-leader-rpc.sql
 -- Equivalente migration: supabase/migrations/20261123_link_leader_by_email.sql
 -- =============================================================================
 
--- -----------------------------------------------------------------------------
--- A) Workaround IMMEDIATO — boedus@gmail.com come leader/segretario su Co.Ca.
---    Prerequisito: l'utente esiste in Authentication (Invite user già fatto).
--- -----------------------------------------------------------------------------
-DO $$
-DECLARE
-  v_email text := 'boedus@gmail.com';
-  v_unit  uuid := 'e1d0e8fa-8c25-404c-8684-901be769bc28';
-  v_id    uuid;
-BEGIN
-  IF NOT EXISTS (SELECT 1 FROM public.units WHERE id = v_unit) THEN
-    RAISE EXCEPTION 'Unità % assente', v_unit;
-  END IF;
-
-  SELECT id INTO v_id
-  FROM auth.users
-  WHERE lower(email) = lower(v_email)
-  LIMIT 1;
-
-  IF v_id IS NULL THEN
-    RAISE EXCEPTION
-      'Utente assente in Auth: Authentication → Users → Invite user: %',
-      v_email;
-  END IF;
-
-  INSERT INTO public.profiles (
-    id, full_name, role, active_role, unit_id, group_role
-  )
-  VALUES (
-    v_id,
-    COALESCE(
-      (SELECT nullif(trim(full_name), '') FROM public.profiles WHERE id = v_id),
-      v_email
-    ),
-    'leader',
-    'leader',
-    v_unit,
-    'segretario'
-  )
-  ON CONFLICT (id) DO UPDATE SET
-    role = 'leader',
-    active_role = 'leader',
-    unit_id = EXCLUDED.unit_id,
-    group_role = 'segretario';
-
-  INSERT INTO public.role_memberships (user_id, role)
-  VALUES (v_id, 'leader')
-  ON CONFLICT DO NOTHING;
-END $$;
-
--- Verifica
-SELECT
-  au.email,
-  p.role,
-  p.active_role,
-  p.unit_id,
-  p.group_role,
-  rm.role AS membership_role
-FROM auth.users au
-JOIN public.profiles p ON p.id = au.id
-LEFT JOIN public.role_memberships rm
-  ON rm.user_id = p.id AND rm.role = 'leader'
-WHERE lower(au.email) = 'boedus@gmail.com';
--- atteso: role=leader, group_role=segretario, unit_id=e1d0e8fa-…, membership_role=leader
-
--- -----------------------------------------------------------------------------
--- B) RPC per «Collega capo» dall'app (dopo questo run, senza allargare RLS)
--- -----------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION public.can_manage_group_anagrafica(p_unit_id uuid)
 RETURNS boolean
 LANGUAGE sql
@@ -107,6 +36,9 @@ AS $$
         )
     );
 $$;
+
+COMMENT ON FUNCTION public.can_manage_group_anagrafica(uuid) IS
+  'True se auth.uid() è leader e può gestire anagrafica capi sull''unità: stesso group_id e (Co.Ca. oppure incarico capo_gruppo/capo_unita).';
 
 CREATE OR REPLACE FUNCTION public.link_leader_by_email(
   p_email text,
@@ -195,6 +127,9 @@ BEGIN
   RETURN v_id;
 END;
 $$;
+
+COMMENT ON FUNCTION public.link_leader_by_email(text, uuid, text, text, text, text, public.coca_group_role) IS
+  'Collega un utente Auth esistente come leader sull''unità indicata. Solo capo Co.Ca. / Capo Gruppo / Capo Unità dello stesso gruppo. Non crea utenti Auth.';
 
 REVOKE ALL ON FUNCTION public.can_manage_group_anagrafica(uuid) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.can_manage_group_anagrafica(uuid) TO authenticated;

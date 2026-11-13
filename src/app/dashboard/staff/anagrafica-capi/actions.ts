@@ -91,34 +91,10 @@ export async function inviteOrLinkLeaderAction(
     group_role: groupRole,
   };
 
-  const sqlEsc = (value: string) => value.replace(/'/g, "''");
   const sqlHint = [
-    `-- SQL Editor come postgres (bypass RLS). Non usare «Run as role» authenticated.`,
-    `-- File: supabase/sql_editor_link_leader_membership.sql`,
-    `-- 1) Se manca in Auth: Authentication → Users → Invite user: ${email}`,
-    `-- 2) Poi:`,
-    `DO $$`,
-    `DECLARE`,
-    `  v_email text := '${sqlEsc(email)}';`,
-    `  v_unit uuid := '${serviceUnit.id}';`,
-    `  v_id uuid;`,
-    `BEGIN`,
-    `  SELECT id INTO v_id FROM auth.users WHERE lower(email) = lower(v_email) LIMIT 1;`,
-    `  IF v_id IS NULL THEN`,
-    `    RAISE EXCEPTION 'Utente assente in Auth: invita %', v_email;`,
-    `  END IF;`,
-    `  INSERT INTO public.profiles (id, full_name, first_name, last_name, phone, role, active_role, unit_id, group_role)`,
-    `  VALUES (v_id, '${sqlEsc(fullName)}', ${firstName ? `'${sqlEsc(firstName)}'` : "NULL"}, ${lastName ? `'${sqlEsc(lastName)}'` : "NULL"}, ${phone ? `'${sqlEsc(phone)}'` : "NULL"}, 'leader', 'leader', v_unit, ${groupRole ? `'${groupRole}'` : "NULL"})`,
-    `  ON CONFLICT (id) DO UPDATE SET`,
-    `    full_name = EXCLUDED.full_name,`,
-    `    first_name = COALESCE(EXCLUDED.first_name, public.profiles.first_name),`,
-    `    last_name = COALESCE(EXCLUDED.last_name, public.profiles.last_name),`,
-    `    phone = COALESCE(EXCLUDED.phone, public.profiles.phone),`,
-    `    role = 'leader', active_role = 'leader',`,
-    `    unit_id = EXCLUDED.unit_id, group_role = EXCLUDED.group_role;`,
-    `  INSERT INTO public.role_memberships (user_id, role)`,
-    `  VALUES (v_id, 'leader') ON CONFLICT DO NOTHING;`,
-    `END $$;`,
+    `-- SQL Editor come postgres: supabase/sql_editor_link_leader_membership.sql`,
+    `-- Installa solo le RPC (nessun INSERT di utenti). Poi riesegui «Collega capo».`,
+    `-- Se l'utente non è in Authentication, invita da Dashboard Auth e riprova dall'app.`,
   ].join("\n");
 
   function isMissingLinkRpc(message: string) {
