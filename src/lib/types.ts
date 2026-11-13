@@ -1,5 +1,7 @@
 export type AppRole = "leader" | "member" | "parent";
 export type ScoutBranch = "LC" | "EG" | "RS" | "COCA";
+/** Sesso anagrafico opzionale (etichette UI). */
+export type ProfileGender = "M" | "F";
 export type CocaGroupRole =
   | "capo_gruppo"
   | "tesoriere"
@@ -54,6 +56,8 @@ export type Profile = {
   totem: string | null;
   phone: string | null;
   birth_date: string | null;
+  /** Sesso anagrafico opzionale (lupetto/lupetta, padre/madre, …). */
+  gender: ProfileGender | null;
   /** Incarico in Comunità Capi / Gruppo. */
   group_role: CocaGroupRole | null;
   created_at?: string;

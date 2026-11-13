@@ -79,19 +79,19 @@ ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name, unit_id = EXCLUDED.unit_id;
 -- (active_unit_id) e RLS same_unit estesa. group_role = incarico in Co.Ca.
 INSERT INTO public.profiles (
   id, full_name, role, unit_id, totem, phone, birth_date, subgroup_id,
-  active_role, group_role, active_unit_id
+  active_role, group_role, active_unit_id, gender
 )
 VALUES
-  ('11111111-1111-1111-1111-111111111101', 'Chiara Capo', 'leader', 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbb1', 'Ghianda', NULL, '1990-03-12', NULL, 'leader', 'capo_gruppo', NULL),
-  ('11111111-1111-1111-1111-111111111102', 'Marco Capo', 'leader', 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbb1', 'Castoro', NULL, '1988-07-21', NULL, 'leader', 'capo_unita', NULL),
-  ('11111111-1111-1111-1111-111111111201', 'Elena Genitore', 'parent', NULL, NULL, NULL, '1982-01-10', NULL, 'parent', NULL, NULL),
-  ('11111111-1111-1111-1111-111111111202', 'Paolo Genitore', 'parent', NULL, NULL, NULL, '1980-11-02', NULL, 'parent', NULL, NULL),
-  ('11111111-1111-1111-1111-111111111203', 'Sara Genitore', 'parent', NULL, NULL, NULL, '1985-05-30', NULL, 'parent', NULL, NULL),
-  ('11111111-1111-1111-1111-111111111301', 'Luca Rossi', 'member', 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbb1', 'Volpe', NULL, '2012-04-04', 'cccccccc-cccc-cccc-cccc-ccccccccccc1', 'member', NULL, NULL),
-  ('11111111-1111-1111-1111-111111111302', 'Giulia Bianchi', 'member', 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbb1', 'Aquila', NULL, '2013-09-15', 'cccccccc-cccc-cccc-cccc-ccccccccccc1', 'member', NULL, NULL),
-  ('11111111-1111-1111-1111-111111111303', 'Matteo Verdi', 'member', 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbb1', 'Lupo', NULL, '2012-12-01', 'cccccccc-cccc-cccc-cccc-ccccccccccc2', 'member', NULL, NULL),
-  ('11111111-1111-1111-1111-111111111304', 'Anna Neri', 'member', 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbb1', 'Scoiattolo', NULL, '2014-02-20', 'cccccccc-cccc-cccc-cccc-ccccccccccc2', 'member', NULL, NULL),
-  ('11111111-1111-1111-1111-111111111305', 'Pietro Blu', 'member', 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbb1', 'Tasso', NULL, '2013-06-08', 'cccccccc-cccc-cccc-cccc-ccccccccccc3', 'member', NULL, NULL)
+  ('11111111-1111-1111-1111-111111111101', 'Chiara Capo', 'leader', 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbb1', 'Ghianda', NULL, '1990-03-12', NULL, 'leader', 'capo_gruppo', NULL, 'F'),
+  ('11111111-1111-1111-1111-111111111102', 'Marco Capo', 'leader', 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbb1', 'Castoro', NULL, '1988-07-21', NULL, 'leader', 'capo_unita', NULL, 'M'),
+  ('11111111-1111-1111-1111-111111111201', 'Elena Genitore', 'parent', NULL, NULL, NULL, '1982-01-10', NULL, 'parent', NULL, NULL, 'F'),
+  ('11111111-1111-1111-1111-111111111202', 'Paolo Genitore', 'parent', NULL, NULL, NULL, '1980-11-02', NULL, 'parent', NULL, NULL, 'M'),
+  ('11111111-1111-1111-1111-111111111203', 'Sara Genitore', 'parent', NULL, NULL, NULL, '1985-05-30', NULL, 'parent', NULL, NULL, 'F'),
+  ('11111111-1111-1111-1111-111111111301', 'Luca Rossi', 'member', 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbb1', 'Volpe', NULL, '2012-04-04', 'cccccccc-cccc-cccc-cccc-ccccccccccc1', 'member', NULL, NULL, 'M'),
+  ('11111111-1111-1111-1111-111111111302', 'Giulia Bianchi', 'member', 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbb1', 'Aquila', NULL, '2013-09-15', 'cccccccc-cccc-cccc-cccc-ccccccccccc1', 'member', NULL, NULL, 'F'),
+  ('11111111-1111-1111-1111-111111111303', 'Matteo Verdi', 'member', 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbb1', 'Lupo', NULL, '2012-12-01', 'cccccccc-cccc-cccc-cccc-ccccccccccc2', 'member', NULL, NULL, 'M'),
+  ('11111111-1111-1111-1111-111111111304', 'Anna Neri', 'member', 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbb1', 'Scoiattolo', NULL, '2014-02-20', 'cccccccc-cccc-cccc-cccc-ccccccccccc2', 'member', NULL, NULL, 'F'),
+  ('11111111-1111-1111-1111-111111111305', 'Pietro Blu', 'member', 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbb1', 'Tasso', NULL, '2013-06-08', 'cccccccc-cccc-cccc-cccc-ccccccccccc3', 'member', NULL, NULL, 'M')
 ON CONFLICT (id) DO UPDATE
 SET full_name = EXCLUDED.full_name,
     role = EXCLUDED.role,
@@ -100,7 +100,8 @@ SET full_name = EXCLUDED.full_name,
     birth_date = EXCLUDED.birth_date,
     subgroup_id = EXCLUDED.subgroup_id,
     active_role = EXCLUDED.active_role,
-    group_role = EXCLUDED.group_role;
+    group_role = EXCLUDED.group_role,
+    gender = EXCLUDED.gender;
 
 -- Multi-ruolo demo: capo1 è anche genitore di Luca
 INSERT INTO public.parent_child (parent_id, child_id) VALUES
