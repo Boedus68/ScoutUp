@@ -16,6 +16,7 @@ export function LoginForm() {
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [resetting, setResetting] = useState(false);
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
@@ -32,6 +33,7 @@ export function LoginForm() {
           email,
           options: {
             emailRedirectTo: `${origin}/auth/callback`,
+            shouldCreateUser: false,
           },
         });
         if (magicError) throw magicError;
@@ -142,6 +144,45 @@ export function LoginForm() {
       >
         {loading ? "Attendere…" : mode === "magic" ? "Invia magic link" : "Accedi"}
       </button>
+
+      {mode === "password" ? (
+        <button
+          type="button"
+          disabled={resetting || loading || !email}
+          className="w-full text-sm font-medium text-[var(--navy)] hover:underline disabled:opacity-60"
+          onClick={async () => {
+            setResetting(true);
+            setError(null);
+            setMessage(null);
+            try {
+              const supabase = createClient();
+              const origin = window.location.origin;
+              const { error: resetErr } =
+                await supabase.auth.resetPasswordForEmail(email, {
+                  redirectTo: `${origin}/auth/callback?next=${encodeURIComponent("/imposta-password")}`,
+                });
+              if (resetErr) throw resetErr;
+              setMessage(
+                "Se l'email è registrata, riceverai il link per impostare la password.",
+              );
+            } catch (err) {
+              setError(
+                err instanceof Error
+                  ? err.message
+                  : "Invio recupero password non riuscito.",
+              );
+            } finally {
+              setResetting(false);
+            }
+          }}
+        >
+          {resetting ? "Invio…" : "Password dimenticata?"}
+        </button>
+      ) : null}
+      <p className="text-center text-xs text-[var(--muted)]">
+        Nessuna registrazione pubblica. Entri solo se un capo ti ha invitato o
+        se hai già un account.
+      </p>
     </form>
   );
 }

@@ -10,5 +10,7 @@ export const config = {
     "/dashboard/:path*",
     "/login",
     "/setup",
+    "/auth/:path*",
+    "/imposta-password",
   ],
 };
