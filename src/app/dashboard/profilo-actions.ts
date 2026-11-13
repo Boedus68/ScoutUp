@@ -3,16 +3,20 @@
 import { revalidatePath } from "next/cache";
 import { requireUser, effectiveRole } from "@/lib/auth";
 import { joinFullName } from "@/lib/profile-name";
-import type { CocaGroupRole, ProfileGender } from "@/lib/types";
+import { groupRoleOptions } from "@/lib/labels";
+import type {
+  BranchOfficeKind,
+  CocaGroupRole,
+  ProfileGender,
+  YouthBranch,
+} from "@/lib/types";
 
-const groupRoles = new Set<CocaGroupRole>([
-  "capo_gruppo",
-  "tesoriere",
-  "segretario",
-  "cambusiere",
-  "maestro_novizi",
-  "capo_unita",
+const groupRoles = new Set<CocaGroupRole>(groupRoleOptions);
+const branchOffices = new Set<BranchOfficeKind>([
+  "capo_branca",
+  "aiuto_capo_branca",
 ]);
+const youthBranches = new Set<YouthBranch>(["LC", "EG", "RS"]);
 
 export type UpdateProfileResult = {
   ok: boolean;
@@ -41,6 +45,17 @@ export async function updateOwnProfileAction(
     groupRoleRaw && groupRoles.has(groupRoleRaw as CocaGroupRole)
       ? (groupRoleRaw as CocaGroupRole)
       : null;
+  const branchOfficeRaw = String(formData.get("branch_office") ?? "").trim();
+  const assignedBranchRaw = String(formData.get("assigned_branch") ?? "").trim();
+  const assignedBranch: YouthBranch | null =
+    assignedBranchRaw && youthBranches.has(assignedBranchRaw as YouthBranch)
+      ? (assignedBranchRaw as YouthBranch)
+      : null;
+  const branchOffice: BranchOfficeKind | null = assignedBranch
+    ? branchOffices.has(branchOfficeRaw as BranchOfficeKind)
+      ? (branchOfficeRaw as BranchOfficeKind)
+      : "capo_branca"
+    : null;
 
   if (!firstName && !lastName) {
     return { ok: false, message: "Inserisci almeno nome o cognome." };
@@ -59,6 +74,8 @@ export async function updateOwnProfileAction(
     address: string | null;
     gender: ProfileGender | null;
     group_role?: CocaGroupRole | null;
+    branch_office?: BranchOfficeKind | null;
+    assigned_branch?: YouthBranch | null;
   } = {
     first_name: firstName || null,
     last_name: lastName || null,
@@ -70,6 +87,8 @@ export async function updateOwnProfileAction(
 
   if (profile.role === "leader" || profile.active_role === "leader") {
     patch.group_role = groupRole;
+    patch.branch_office = branchOffice;
+    patch.assigned_branch = assignedBranch;
   }
 
   const { error } = await supabase

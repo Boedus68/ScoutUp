@@ -5,8 +5,20 @@ import {
   updateOwnProfileAction,
   type UpdateProfileResult,
 } from "@/app/dashboard/profilo-actions";
-import { groupRoleLabel, groupRoleOptions } from "@/lib/labels";
-import type { CocaGroupRole, ProfileGender } from "@/lib/types";
+import {
+  branchOfficeLabel,
+  branchOfficeOptions,
+  groupRoleLabel,
+  groupRoleOptions,
+  youthBranchLabel,
+  youthBranchOptions,
+} from "@/lib/labels";
+import type {
+  BranchOfficeKind,
+  CocaGroupRole,
+  ProfileGender,
+  YouthBranch,
+} from "@/lib/types";
 
 type ProfileEditFormProps = {
   firstName: string;
@@ -17,6 +29,8 @@ type ProfileEditFormProps = {
   gender: ProfileGender | null;
   groupRole?: CocaGroupRole | null;
   showGroupRole?: boolean;
+  branchOffice?: BranchOfficeKind | null;
+  assignedBranch?: YouthBranch | null;
 };
 
 export function ProfileEditForm({
@@ -28,6 +42,8 @@ export function ProfileEditForm({
   gender,
   groupRole = null,
   showGroupRole = false,
+  branchOffice = null,
+  assignedBranch = null,
 }: ProfileEditFormProps) {
   const [pending, startTransition] = useTransition();
   const [result, setResult] = useState<UpdateProfileResult | null>(null);
@@ -104,21 +120,55 @@ export function ProfileEditForm({
       </label>
 
       {showGroupRole ? (
-        <label className="block text-sm">
-          <span className="mb-1 block font-medium">Incarico in Co.Ca.</span>
-          <select
-            name="group_role"
-            defaultValue={groupRole ?? ""}
-            className="w-full rounded-md border border-[var(--border)] px-3 py-2"
-          >
-            <option value="">— nessuno —</option>
-            {groupRoleOptions.map((role) => (
-              <option key={role} value={role}>
-                {groupRoleLabel[role]}
-              </option>
-            ))}
-          </select>
-        </label>
+        <>
+          <label className="block text-sm">
+            <span className="mb-1 block font-medium">Incarico in Co.Ca.</span>
+            <select
+              name="group_role"
+              defaultValue={groupRole ?? ""}
+              className="w-full rounded-md border border-[var(--border)] px-3 py-2"
+            >
+              <option value="">— nessuno —</option>
+              {groupRoleOptions.map((role) => (
+                <option key={role} value={role}>
+                  {groupRoleLabel[role]}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <label className="block text-sm">
+              <span className="mb-1 block font-medium">Ruolo in branca</span>
+              <select
+                name="branch_office"
+                defaultValue={branchOffice ?? "capo_branca"}
+                className="w-full rounded-md border border-[var(--border)] px-3 py-2"
+              >
+                {branchOfficeOptions.map((kind) => (
+                  <option key={kind} value={kind}>
+                    {branchOfficeLabel[kind]}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="block text-sm">
+              <span className="mb-1 block font-medium">Branca</span>
+              <select
+                name="assigned_branch"
+                defaultValue={assignedBranch ?? ""}
+                className="w-full rounded-md border border-[var(--border)] px-3 py-2"
+              >
+                <option value="">Nessuno</option>
+                {youthBranchOptions.map((branch) => (
+                  <option key={branch} value={branch}>
+                    {youthBranchLabel[branch]}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+        </>
       ) : null}
 
       <label className="block text-sm">

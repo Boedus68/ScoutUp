@@ -8,7 +8,12 @@ export type CocaGroupRole =
   | "segretario"
   | "cambusiere"
   | "maestro_novizi"
-  | "capo_unita";
+  | "capo_unita"
+  | "capo_a_disposizione";
+/** Incarico in branca (non Co.Ca.). */
+export type BranchOfficeKind = "capo_branca" | "aiuto_capo_branca";
+/** Branca di servizio L/C E/G R/S (senza Co.Ca.). */
+export type YouthBranch = "LC" | "EG" | "RS";
 export type AttendanceStatus = "present" | "absent" | "justified" | "late";
 export type EventType =
   | "meeting"
@@ -63,6 +68,10 @@ export type Profile = {
   gender: ProfileGender | null;
   /** Incarico in Comunità Capi / Gruppo. */
   group_role: CocaGroupRole | null;
+  /** Capo branca o Aiuto capo branca. */
+  branch_office: BranchOfficeKind | null;
+  /** Branca assegnata (LC / EG / RS). Null = Nessuno. */
+  assigned_branch: YouthBranch | null;
   created_at?: string;
   updated_at?: string;
 };
