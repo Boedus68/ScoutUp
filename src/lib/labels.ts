@@ -4,7 +4,9 @@ import type {
   AttendanceStatus,
   AuthorizationStatus,
   CashEntryKind,
+  BranchOfficeKind,
   CocaGroupRole,
+  YouthBranch,
   ConfirmationStatus,
   EventType,
   FeeStatus,
@@ -57,6 +59,7 @@ export const groupRoleLabel: Record<CocaGroupRole, string> = {
   cambusiere: "Cambusiere",
   maestro_novizi: "Maestro dei Novizi",
   capo_unita: "Capo Unità",
+  capo_a_disposizione: "Capo a disposizione",
 };
 
 /** Ordine select incarichi Co.Ca. */
@@ -67,7 +70,26 @@ export const groupRoleOptions: CocaGroupRole[] = [
   "segretario",
   "cambusiere",
   "maestro_novizi",
+  "capo_a_disposizione",
 ];
+
+export const branchOfficeLabel: Record<BranchOfficeKind, string> = {
+  capo_branca: "Capo branca",
+  aiuto_capo_branca: "Aiuto capo branca",
+};
+
+export const branchOfficeOptions: BranchOfficeKind[] = [
+  "capo_branca",
+  "aiuto_capo_branca",
+];
+
+export const youthBranchLabel: Record<YouthBranch, string> = {
+  LC: "L/C",
+  EG: "E/G",
+  RS: "R/S",
+};
+
+export const youthBranchOptions: YouthBranch[] = ["LC", "EG", "RS"];
 
 export const attendanceLabel: Record<AttendanceStatus, string> = {
   present: "Presente",

@@ -5,6 +5,7 @@ import { requireRole } from "@/lib/auth";
 import { joinFullName } from "@/lib/profile-name";
 import { createAdminClient, hasServiceRoleKey } from "@/lib/supabase/admin";
 import { isCocaUnit } from "@/lib/staff-unit";
+import { groupRoleOptions } from "@/lib/labels";
 import type { CocaGroupRole } from "@/lib/types";
 
 export type InviteLeaderResult = {
@@ -13,14 +14,7 @@ export type InviteLeaderResult = {
   message: string;
 };
 
-const groupRoles = new Set<CocaGroupRole>([
-  "capo_gruppo",
-  "tesoriere",
-  "segretario",
-  "cambusiere",
-  "maestro_novizi",
-  "capo_unita",
-]);
+const groupRoles = new Set<CocaGroupRole>(groupRoleOptions);
 
 const RPC_SQL_MESSAGE =
   "Sul database manca la funzione link_leader_by_email. In Supabase → SQL Editor (ruolo postgres) esegui sql_editor_link_leader_membership.sql (solo RPC, nessun utente), poi riprova «Collega capo».";

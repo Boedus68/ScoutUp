@@ -29,6 +29,8 @@ export default async function StaffProfiloPage() {
         gender={profile.gender ?? null}
         showGroupRole
         groupRole={profile.group_role}
+        branchOffice={profile.branch_office}
+        assignedBranch={profile.assigned_branch}
       />
     </StaffShell>
   );
