@@ -6,6 +6,13 @@ import { switchActiveUnitAction } from "@/app/dashboard/actions";
 import { branchLabel, branchShortLabel } from "@/lib/labels";
 import type { ScoutBranch, Unit } from "@/lib/types";
 
+function unitOptionLabel(unit: Unit) {
+  if (unit.branch === "COCA") {
+    return `${branchShortLabel.COCA} · ${unit.name}`;
+  }
+  return `${branchShortLabel[unit.branch]} · ${unit.name}`;
+}
+
 export function UnitSwitcher({
   units,
   activeUnitId,
@@ -20,7 +27,10 @@ export function UnitSwitcher({
   const router = useRouter();
   const [pending, startTransition] = useTransition();
 
-  const hasCoca = units.some((u) => u.branch === "COCA");
+  const branches = new Set(units.map((u) => u.branch));
+  const missing = (["LC", "EG", "RS", "COCA"] as ScoutBranch[]).filter(
+    (b) => !branches.has(b),
+  );
   const only = units[0] ?? null;
   const displayBranch = activeBranch ?? only?.branch ?? null;
   const displayName = activeUnitName ?? only?.name ?? null;
@@ -42,12 +52,14 @@ export function UnitSwitcher({
         ) : (
           <p className="text-sm text-[var(--muted)]">Nessuna unità assegnata</p>
         )}
-        {!hasCoca ? (
+        {missing.length > 0 ? (
           <p className="text-xs leading-snug text-[var(--muted)]">
-            Co.Ca. non configurata: manca un&apos;unità con branca{" "}
-            <span className="font-semibold text-[var(--ink)]">COCA</span> nello
-            stesso gruppo. Dopo averla creata in Supabase ricarica la pagina: qui
-            comparirà lo switcher servizio ↔ Co.Ca.
+            Nel gruppo mancano:{" "}
+            <span className="font-semibold text-[var(--ink)]">
+              {missing.map((b) => branchShortLabel[b]).join(", ")}
+            </span>
+            . Crea le unità in Supabase (stesso group_id) e ricarica: qui
+            comparirà lo switcher LC / EG / RS / Co.Ca.
           </p>
         ) : null}
       </div>
@@ -87,12 +99,16 @@ export function UnitSwitcher({
       >
         {units.map((unit) => (
           <option key={unit.id} value={unit.id}>
-            {unit.branch === "COCA"
-              ? `${branchShortLabel.COCA} · Comunità Capi`
-              : `${branchShortLabel[unit.branch]} · ${unit.name} (${branchLabel[unit.branch]})`}
+            {unitOptionLabel(unit)}
+            {` — ${branchLabel[unit.branch]}`}
           </option>
         ))}
       </select>
+      {missing.length > 0 ? (
+        <p className="text-xs text-[var(--muted)]">
+          Mancano ancora: {missing.map((b) => branchShortLabel[b]).join(", ")}.
+        </p>
+      ) : null}
       <button
         type="submit"
         disabled={pending}

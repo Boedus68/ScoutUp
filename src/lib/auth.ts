@@ -28,27 +28,42 @@ export async function requireConfiguredSupabase() {
   }
 }
 
+const leaderBranchOrder = ["LC", "EG", "RS", "COCA"] as const;
+
 async function loadLeaderUnits(
   supabase: Awaited<ReturnType<typeof createClient>>,
   serviceUnit: Unit | null,
 ): Promise<Unit[]> {
   if (!serviceUnit) return [];
 
-  const units: Unit[] = [serviceUnit];
-
-  if (serviceUnit.group_id && serviceUnit.branch !== "COCA") {
-    const { data: coca } = await supabase
-      .from("units")
-      .select("*")
-      .eq("group_id", serviceUnit.group_id)
-      .eq("branch", "COCA")
-      .maybeSingle();
-    if (coca) {
-      units.push(coca as Unit);
-    }
+  if (!serviceUnit.group_id) {
+    return [serviceUnit];
   }
 
-  return units;
+  // Tutte le unità del gruppo (LC / EG / RS / COCA). RLS: same_unit estesa ai
+  // leader del gruppo; COCA resta nascosta a member/parent.
+  const { data } = await supabase
+    .from("units")
+    .select("*")
+    .eq("group_id", serviceUnit.group_id);
+
+  const units = (data ?? []) as Unit[];
+  if (units.length === 0) {
+    return [serviceUnit];
+  }
+
+  return [...units].sort((a, b) => {
+    const ia = leaderBranchOrder.indexOf(
+      a.branch as (typeof leaderBranchOrder)[number],
+    );
+    const ib = leaderBranchOrder.indexOf(
+      b.branch as (typeof leaderBranchOrder)[number],
+    );
+    const da = ia === -1 ? 99 : ia;
+    const db = ib === -1 ? 99 : ib;
+    if (da !== db) return da - db;
+    return a.name.localeCompare(b.name, "it");
+  });
 }
 
 export async function getSessionProfile() {

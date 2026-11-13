@@ -1,7 +1,7 @@
 -- =============================================================================
--- Scout-Up — seed demo (Gruppo Sirio: Reparto EG + Comunità Capi)
+-- Scout-Up — seed demo (Gruppo Sirio: LC + EG + RS + Comunità Capi)
 -- =============================================================================
--- PREREQUISITO: migration fino a 20261119_coca_comunita_capi.sql già applicate.
+-- PREREQUISITO: migration fino a 20261120_leader_group_units.sql già applicate.
 --
 -- Gli UUID sotto sono FISSI. Crea gli utenti in Supabase → Authentication → Users
 -- (email+password a tua scelta) OPPURE inserisci in auth.users via SQL Editor
@@ -33,9 +33,23 @@ ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name, city = EXCLUDED.city;
 INSERT INTO public.units (id, name, branch, group_id, association_year)
 VALUES
   (
+    'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbb3',
+    'Branco Lupetti / Coccinelle',
+    'LC',
+    'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa1',
+    '2025/2026'
+  ),
+  (
     'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbb1',
     'Reparto Sirio',
     'EG',
+    'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa1',
+    '2025/2026'
+  ),
+  (
+    'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbb4',
+    'Clan Rover / Scolte',
+    'RS',
     'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa1',
     '2025/2026'
   ),
