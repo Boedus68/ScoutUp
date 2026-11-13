@@ -89,7 +89,7 @@ export async function switchActiveRoleAction(formData: FormData): Promise<string
   return dashboardPathForRole(role);
 }
 
-/** Passa tra unità di servizio e Comunità Capi (Co.Ca.) del gruppo. */
+/** Passa tra le unità del gruppo (LC / EG / RS / Co.Ca.). */
 export async function switchActiveUnitAction(
   formData: FormData,
 ): Promise<string> {
@@ -120,14 +120,12 @@ export async function switchActiveUnitAction(
       .eq("id", unitId)
       .maybeSingle();
 
-    const ok =
+    const sameGroup =
       target &&
-      (target.id === profile?.unit_id ||
-        (target.branch === "COCA" &&
-          serviceUnit?.group_id != null &&
-          target.group_id === serviceUnit.group_id));
+      serviceUnit?.group_id != null &&
+      target.group_id === serviceUnit.group_id;
 
-    if (!ok) {
+    if (!sameGroup) {
       throw new Error("Non puoi accedere a questa unità.");
     }
   }
