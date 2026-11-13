@@ -62,8 +62,9 @@ export default function LoginPage() {
             Accedi
           </h1>
           <p className="mt-2 max-w-md text-sm leading-relaxed text-[var(--muted)] sm:text-base">
-            Entra come capo, genitore o ragazzo. Dopo il login verrai portato
-            alla dashboard del tuo ruolo.
+            Entra come capo, genitore o ragazzo. Se hai ricevuto un invito,
+            apri il link nell&apos;email: imposterai la password e entrerai.
+            Qui non c&apos;è registrazione autonoma.
           </p>
 
           <div className="mt-8 overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--surface)]/95 shadow-[var(--shadow-soft)] backdrop-blur-sm">

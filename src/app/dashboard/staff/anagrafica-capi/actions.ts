@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { requireRole } from "@/lib/auth";
 import { joinFullName } from "@/lib/profile-name";
+import { authCallbackUrl } from "@/lib/config";
 import { createAdminClient, hasServiceRoleKey } from "@/lib/supabase/admin";
 import { isCocaUnit } from "@/lib/staff-unit";
 import type { CocaGroupRole } from "@/lib/types";
@@ -136,6 +137,7 @@ export async function inviteOrLinkLeaderAction(
             full_name: fullName,
             role: "leader",
           },
+          redirectTo: authCallbackUrl("/imposta-password"),
         });
 
       if (invErr) {
