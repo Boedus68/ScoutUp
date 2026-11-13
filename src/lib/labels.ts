@@ -59,6 +59,16 @@ export const groupRoleLabel: Record<CocaGroupRole, string> = {
   capo_unita: "Capo Unità",
 };
 
+/** Ordine select incarichi Co.Ca. */
+export const groupRoleOptions: CocaGroupRole[] = [
+  "capo_gruppo",
+  "capo_unita",
+  "tesoriere",
+  "segretario",
+  "cambusiere",
+  "maestro_novizi",
+];
+
 export const attendanceLabel: Record<AttendanceStatus, string> = {
   present: "Presente",
   absent: "Assente",

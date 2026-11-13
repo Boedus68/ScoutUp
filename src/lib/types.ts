@@ -47,6 +47,9 @@ export type Subgroup = {
 export type Profile = {
   id: string;
   full_name: string;
+  first_name: string | null;
+  last_name: string | null;
+  address: string | null;
   role: AppRole;
   active_role: AppRole | null;
   unit_id: string | null;
