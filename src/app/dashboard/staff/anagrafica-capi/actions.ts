@@ -91,35 +91,82 @@ export async function inviteOrLinkLeaderAction(
     group_role: groupRole,
   };
 
-  async function applyProfile(userId: string) {
-    const { error: upErr } = await supabase
-      .from("profiles")
-      .update(profilePatch)
-      .eq("id", userId);
-    if (upErr) throw new Error(upErr.message);
+  const sqlEsc = (value: string) => value.replace(/'/g, "''");
+  const sqlHint = [
+    `-- SQL Editor come postgres (bypass RLS). Non usare «Run as role» authenticated.`,
+    `-- File: supabase/sql_editor_link_leader_membership.sql`,
+    `-- 1) Se manca in Auth: Authentication → Users → Invite user: ${email}`,
+    `-- 2) Poi:`,
+    `DO $$`,
+    `DECLARE`,
+    `  v_email text := '${sqlEsc(email)}';`,
+    `  v_unit uuid := '${serviceUnit.id}';`,
+    `  v_id uuid;`,
+    `BEGIN`,
+    `  SELECT id INTO v_id FROM auth.users WHERE lower(email) = lower(v_email) LIMIT 1;`,
+    `  IF v_id IS NULL THEN`,
+    `    RAISE EXCEPTION 'Utente assente in Auth: invita %', v_email;`,
+    `  END IF;`,
+    `  INSERT INTO public.profiles (id, full_name, first_name, last_name, phone, role, active_role, unit_id, group_role)`,
+    `  VALUES (v_id, '${sqlEsc(fullName)}', ${firstName ? `'${sqlEsc(firstName)}'` : "NULL"}, ${lastName ? `'${sqlEsc(lastName)}'` : "NULL"}, ${phone ? `'${sqlEsc(phone)}'` : "NULL"}, 'leader', 'leader', v_unit, ${groupRole ? `'${groupRole}'` : "NULL"})`,
+    `  ON CONFLICT (id) DO UPDATE SET`,
+    `    full_name = EXCLUDED.full_name,`,
+    `    first_name = COALESCE(EXCLUDED.first_name, public.profiles.first_name),`,
+    `    last_name = COALESCE(EXCLUDED.last_name, public.profiles.last_name),`,
+    `    phone = COALESCE(EXCLUDED.phone, public.profiles.phone),`,
+    `    role = 'leader', active_role = 'leader',`,
+    `    unit_id = EXCLUDED.unit_id, group_role = EXCLUDED.group_role;`,
+    `  INSERT INTO public.role_memberships (user_id, role)`,
+    `  VALUES (v_id, 'leader') ON CONFLICT DO NOTHING;`,
+    `END $$;`,
+  ].join("\n");
 
-    const { error: memErr } = await supabase.from("role_memberships").upsert(
-      { user_id: userId, role: "leader" },
-      { onConflict: "user_id,role" },
+  function isMissingLinkRpc(message: string) {
+    const m = message.toLowerCase();
+    return (
+      m.includes("link_leader_by_email") &&
+      (m.includes("does not exist") ||
+        m.includes("schema cache") ||
+        m.includes("could not find"))
     );
-    if (memErr) throw new Error(memErr.message);
   }
 
-  const sqlHint = [
-    `-- 1) Authentication → Users → Invite user: ${email}`,
-    `-- 2) Poi riesegui «Collega capo» dall'app, oppure:`,
-    `UPDATE public.profiles SET`,
-    `  full_name = '${fullName.replace(/'/g, "''")}',`,
-    `  first_name = ${firstName ? `'${firstName.replace(/'/g, "''")}'` : "NULL"},`,
-    `  last_name = ${lastName ? `'${lastName.replace(/'/g, "''")}'` : "NULL"},`,
-    `  role = 'leader', active_role = 'leader',`,
-    `  unit_id = '${serviceUnit.id}',`,
-    `  group_role = ${groupRole ? `'${groupRole}'` : "NULL"}`,
-    `WHERE id = public.user_id_by_email('${email}');`,
-    `INSERT INTO public.role_memberships (user_id, role)`,
-    `VALUES (public.user_id_by_email('${email}'), 'leader')`,
-    `ON CONFLICT DO NOTHING;`,
-  ].join("\n");
+  async function linkLeader() {
+    const { error } = await supabase.rpc("link_leader_by_email", {
+      p_email: email,
+      p_unit_id: serviceUnit.id,
+      p_full_name: fullName,
+      p_first_name: firstName || null,
+      p_last_name: lastName || null,
+      p_phone: phone,
+      p_group_role: groupRole,
+    });
+    if (!error) return;
+
+    const admin = createAdminClient();
+    if (admin && hasServiceRoleKey() && isMissingLinkRpc(error.message)) {
+      const { data: existingId, error: lookupErr } = await supabase.rpc(
+        "user_id_by_email",
+        { p_email: email },
+      );
+      if (lookupErr) throw new Error(lookupErr.message);
+      const userId = existingId as string | null;
+      if (!userId) throw new Error(error.message);
+      const { error: upErr } = await admin.from("profiles").upsert({
+        id: userId,
+        ...profilePatch,
+      });
+      if (upErr) throw new Error(upErr.message);
+      const { error: memErr } = await admin.from("role_memberships").upsert(
+        { user_id: userId, role: "leader" },
+        { onConflict: "user_id,role" },
+      );
+      if (memErr) throw new Error(memErr.message);
+      return;
+    }
+
+    throw new Error(error.message);
+  }
 
   try {
     const admin = createAdminClient();
@@ -140,7 +187,7 @@ export async function inviteOrLinkLeaderAction(
         );
         if (rpcErr) throw new Error(rpcErr.message);
         if (existingId) {
-          await applyProfile(existingId as string);
+          await linkLeader();
           revalidatePath("/dashboard/staff/anagrafica-capi");
           return {
             ok: true,
@@ -166,23 +213,23 @@ export async function inviteOrLinkLeaderAction(
         };
       }
 
-      // Trigger handle_new_user può aver creato il profilo; aggiorniamo i campi.
-      await applyProfile(userId);
-      // Fallback insert se il trigger non è attivo
-      const { data: existing } = await supabase
-        .from("profiles")
-        .select("id")
-        .eq("id", userId)
-        .maybeSingle();
-      if (!existing) {
-        await admin.from("profiles").upsert({
+      try {
+        await linkLeader();
+      } catch (linkErr) {
+        const { error: upErr } = await admin.from("profiles").upsert({
           id: userId,
           ...profilePatch,
         });
-        await admin.from("role_memberships").upsert(
+        if (upErr) {
+          throw linkErr instanceof Error ? linkErr : new Error(upErr.message);
+        }
+        const { error: memErr } = await admin.from("role_memberships").upsert(
           { user_id: userId, role: "leader" },
           { onConflict: "user_id,role" },
         );
+        if (memErr) {
+          throw linkErr instanceof Error ? linkErr : new Error(memErr.message);
+        }
       }
 
       revalidatePath("/dashboard/staff/anagrafica-capi");
@@ -201,7 +248,7 @@ export async function inviteOrLinkLeaderAction(
     if (rpcErr) throw new Error(rpcErr.message);
 
     if (existingId) {
-      await applyProfile(existingId as string);
+      await linkLeader();
       revalidatePath("/dashboard/staff/anagrafica-capi");
       return {
         ok: true,

@@ -48,19 +48,5 @@ CREATE POLICY profiles_update ON public.profiles
     )
   );
 
--- Dopo aver creato un capo in Authentication → Invite user,
--- collega il profilo (esempio):
---
--- SELECT public.user_id_by_email('nuovo.capo@example.com');
--- UPDATE public.profiles
--- SET role = 'leader',
---     active_role = 'leader',
---     unit_id = '<uuid-unità-servizio>',
---     group_role = 'capo_unita',
---     full_name = 'Nome Cognome',
---     first_name = 'Nome',
---     last_name = 'Cognome'
--- WHERE id = public.user_id_by_email('nuovo.capo@example.com');
--- INSERT INTO public.role_memberships (user_id, role)
--- VALUES (public.user_id_by_email('nuovo.capo@example.com'), 'leader')
--- ON CONFLICT DO NOTHING;
+-- Collegare un capo (role_memberships): non usare INSERT con JWT leader.
+-- SQL Editor come postgres: supabase/sql_editor_link_leader_membership.sql
