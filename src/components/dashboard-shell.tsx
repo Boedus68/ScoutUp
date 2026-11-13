@@ -4,6 +4,7 @@ import { LogoutButton } from "@/components/logout-button";
 import { RoleSwitcher } from "@/components/role-switcher";
 import { UnitSwitcher } from "@/components/unit-switcher";
 import { SidebarNav } from "@/components/sidebar-nav";
+import { getSidebarIdentity } from "@/lib/auth";
 import { navItemsForRole } from "@/lib/nav";
 import { branchShortLabel, roleLabel } from "@/lib/labels";
 import type { AppRole, Unit } from "@/lib/types";
@@ -22,7 +23,7 @@ type DashboardShellProps = {
   activeUnitName?: string | null;
 };
 
-export function DashboardShell({
+export async function DashboardShell({
   title,
   subtitle,
   activeRole,
@@ -40,6 +41,8 @@ export function DashboardShell({
     activeRole === "leader" && activeBranch
       ? branchShortLabel[activeBranch]
       : null;
+  const { profileName, roleContextLabel } =
+    await getSidebarIdentity(activeRole);
 
   return (
     <div className="min-h-full">
@@ -59,9 +62,20 @@ export function DashboardShell({
                   Scout-Up
                 </span>
               </Link>
-              <p className="mt-2 text-xs font-medium uppercase tracking-[0.14em] text-[var(--muted)]">
-                {roleLabel[activeRole]}
-              </p>
+              {profileName ? (
+                <div className="mt-3">
+                  <p className="font-display text-base leading-snug tracking-tight text-[var(--ink)]">
+                    {profileName}
+                  </p>
+                  <p className="mt-0.5 text-xs font-medium text-[var(--muted)]">
+                    {roleContextLabel ?? roleLabel[activeRole]}
+                  </p>
+                </div>
+              ) : (
+                <p className="mt-2 text-xs font-medium uppercase tracking-[0.14em] text-[var(--muted)]">
+                  {roleLabel[activeRole]}
+                </p>
+              )}
               {branchChip ? (
                 <p
                   className="mt-2 inline-flex items-center gap-1.5 rounded-md border border-[var(--border)] bg-[var(--surface-muted)] px-2 py-1 text-xs font-semibold text-[var(--ink)]"

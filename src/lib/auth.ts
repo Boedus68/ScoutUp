@@ -1,7 +1,9 @@
+import { cache } from "react";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/config";
 import { sortAppRoles } from "@/lib/labels";
+import { buildRoleContextLabel } from "@/lib/role-context-label";
 import { staffUnitId } from "@/lib/staff-unit";
 import type { AppRole, Profile, Unit } from "@/lib/types";
 
@@ -66,7 +68,7 @@ async function loadLeaderUnits(
   });
 }
 
-export async function getSessionProfile() {
+async function loadSessionProfile() {
   await requireConfiguredSupabase();
   const supabase = await createClient();
   const {
@@ -142,6 +144,59 @@ export async function getSessionProfile() {
     availableUnits,
     roles,
     supabase,
+  };
+}
+
+/** Dedup per request: shell + pagine condividono la stessa sessione. */
+export const getSessionProfile = cache(loadSessionProfile);
+
+/** Nome profilo + etichetta ruolo contestuale per la sidebar. */
+export async function getSidebarIdentity(activeRole: AppRole) {
+  const { profile, unit, supabase } = await getSessionProfile();
+  if (!profile) {
+    return { profileName: null as string | null, roleContextLabel: null as string | null };
+  }
+
+  let subgroupName: string | null = null;
+  if (profile.subgroup_id) {
+    const { data } = await supabase
+      .from("subgroups")
+      .select("name")
+      .eq("id", profile.subgroup_id)
+      .maybeSingle();
+    subgroupName = (data?.name as string | undefined) ?? null;
+  }
+
+  let childNames: string[] = [];
+  if (activeRole === "parent") {
+    const { data: links } = await supabase
+      .from("parent_child")
+      .select("child_id")
+      .eq("parent_id", profile.id);
+    const childIds = (links ?? []).map((l) => l.child_id as string);
+    if (childIds.length > 0) {
+      const { data: children } = await supabase
+        .from("profiles")
+        .select("full_name")
+        .in("id", childIds)
+        .order("full_name");
+      childNames = (children ?? []).map((c) => c.full_name as string);
+    }
+  }
+
+  const roleContextLabel = buildRoleContextLabel({
+    activeRole,
+    gender: profile.gender ?? null,
+    groupRole: profile.group_role ?? null,
+    branch: unit?.branch ?? null,
+    unitName: unit?.name ?? null,
+    subgroupName,
+    childNames,
+  });
+
+  return {
+    profileName: profile.full_name,
+    roleContextLabel,
   };
 }
 
