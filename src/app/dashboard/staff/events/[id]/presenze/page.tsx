@@ -172,6 +172,12 @@ export default async function PresenzePage({ params }: PageProps) {
       headerActions={
         <div className="flex flex-wrap items-center gap-3">
           <Link
+            href={`/dashboard/staff/events/${event.id}/modifica`}
+            className="text-sm font-medium text-[var(--forest)]"
+          >
+            Modifica
+          </Link>
+          <Link
             href={`/dashboard/staff/events/${event.id}/fascicolo-sicurezza`}
             className="text-sm font-medium text-[var(--forest)]"
           >

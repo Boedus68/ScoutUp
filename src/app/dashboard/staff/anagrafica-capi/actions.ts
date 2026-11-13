@@ -11,7 +11,6 @@ export type InviteLeaderResult = {
   ok: boolean;
   mode: "invited" | "linked" | "needs_auth" | "error";
   message: string;
-  sqlHint?: string;
 };
 
 const groupRoles = new Set<CocaGroupRole>([
@@ -23,6 +22,12 @@ const groupRoles = new Set<CocaGroupRole>([
   "capo_unita",
 ]);
 
+const RPC_SQL_MESSAGE =
+  "Sul database manca la funzione link_leader_by_email. In Supabase → SQL Editor (ruolo postgres) esegui sql_editor_link_leader_membership.sql (solo RPC, nessun utente), poi riprova «Collega capo».";
+
+const NO_SERVICE_ROLE_MESSAGE =
+  "L'invito Auth dall'app richiede SUPABASE_SERVICE_ROLE_KEY sul server Netlify (mai NEXT_PUBLIC_*). Configurala e usa «Invita capo», oppure invita da Authentication e poi «Collega capo». Non inserire membership da SQL Editor.";
+
 async function assertCocaLeader() {
   const session = await requireRole(["leader"]);
   if (!isCocaUnit(session.unit)) {
@@ -32,6 +37,22 @@ async function assertCocaLeader() {
     throw new Error("Unità Co.Ca. senza group_id.");
   }
   return session;
+}
+
+function isMissingLinkRpc(message: string) {
+  const m = message.toLowerCase();
+  return (
+    m.includes("link_leader_by_email") &&
+    (m.includes("does not exist") ||
+      m.includes("schema cache") ||
+      m.includes("could not find") ||
+      m.includes("non esiste"))
+  );
+}
+
+function isAuthMissing(message: string) {
+  const m = message.toLowerCase();
+  return m.includes("utente assente in auth") || m.includes("user not found");
 }
 
 export async function inviteOrLinkLeaderAction(
@@ -80,68 +101,30 @@ export async function inviteOrLinkLeaderAction(
     };
   }
 
-  const profilePatch = {
-    full_name: fullName,
-    first_name: firstName || null,
-    last_name: lastName || null,
-    phone,
-    role: "leader" as const,
-    active_role: "leader" as const,
-    unit_id: serviceUnit.id,
-    group_role: groupRole,
-  };
-
-  const sqlHint = [
-    `-- SQL Editor come postgres: supabase/sql_editor_link_leader_membership.sql`,
-    `-- Installa solo le RPC (nessun INSERT di utenti). Poi riesegui «Collega capo».`,
-    `-- Se l'utente non è in Authentication, invita da Dashboard Auth e riprova dall'app.`,
-  ].join("\n");
-
-  function isMissingLinkRpc(message: string) {
-    const m = message.toLowerCase();
-    return (
-      m.includes("link_leader_by_email") &&
-      (m.includes("does not exist") ||
-        m.includes("schema cache") ||
-        m.includes("could not find"))
-    );
-  }
-
-  async function linkLeader() {
+  async function linkLeader(): Promise<InviteLeaderResult | null> {
     const { error } = await supabase.rpc("link_leader_by_email", {
       p_email: email,
-      p_unit_id: serviceUnit.id,
+      p_unit_id: serviceUnit!.id,
       p_full_name: fullName,
       p_first_name: firstName || null,
       p_last_name: lastName || null,
       p_phone: phone,
       p_group_role: groupRole,
     });
-    if (!error) return;
-
-    const admin = createAdminClient();
-    if (admin && hasServiceRoleKey() && isMissingLinkRpc(error.message)) {
-      const { data: existingId, error: lookupErr } = await supabase.rpc(
-        "user_id_by_email",
-        { p_email: email },
-      );
-      if (lookupErr) throw new Error(lookupErr.message);
-      const userId = existingId as string | null;
-      if (!userId) throw new Error(error.message);
-      const { error: upErr } = await admin.from("profiles").upsert({
-        id: userId,
-        ...profilePatch,
-      });
-      if (upErr) throw new Error(upErr.message);
-      const { error: memErr } = await admin.from("role_memberships").upsert(
-        { user_id: userId, role: "leader" },
-        { onConflict: "user_id,role" },
-      );
-      if (memErr) throw new Error(memErr.message);
-      return;
+    if (!error) return null;
+    if (isMissingLinkRpc(error.message)) {
+      return { ok: false, mode: "error", message: RPC_SQL_MESSAGE };
     }
-
-    throw new Error(error.message);
+    if (isAuthMissing(error.message)) {
+      return {
+        ok: false,
+        mode: "needs_auth",
+        message: hasServiceRoleKey()
+          ? "Utente assente in Authentication dopo l'invito."
+          : NO_SERVICE_ROLE_MESSAGE,
+      };
+    }
+    return { ok: false, mode: "error", message: error.message };
   }
 
   try {
@@ -156,14 +139,20 @@ export async function inviteOrLinkLeaderAction(
         });
 
       if (invErr) {
-        // Utente già esistente → collega
         const { data: existingId, error: rpcErr } = await supabase.rpc(
           "user_id_by_email",
           { p_email: email },
         );
-        if (rpcErr) throw new Error(rpcErr.message);
+        if (rpcErr && isMissingLinkRpc(rpcErr.message)) {
+          return { ok: false, mode: "error", message: RPC_SQL_MESSAGE };
+        }
+        if (rpcErr && !isMissingLinkRpc(rpcErr.message)) {
+          // user_id_by_email esiste; altro errore
+          throw new Error(rpcErr.message);
+        }
         if (existingId) {
-          await linkLeader();
+          const linkErr = await linkLeader();
+          if (linkErr) return linkErr;
           revalidatePath("/dashboard/staff/anagrafica-capi");
           return {
             ok: true,
@@ -175,37 +164,24 @@ export async function inviteOrLinkLeaderAction(
           ok: false,
           mode: "error",
           message: invErr.message,
-          sqlHint,
         };
       }
 
-      const userId = invited.user?.id;
-      if (!userId) {
+      if (!invited.user?.id) {
         return {
           ok: false,
           mode: "error",
           message: "Invite inviato ma senza user id.",
-          sqlHint,
         };
       }
 
-      try {
-        await linkLeader();
-      } catch (linkErr) {
-        const { error: upErr } = await admin.from("profiles").upsert({
-          id: userId,
-          ...profilePatch,
-        });
-        if (upErr) {
-          throw linkErr instanceof Error ? linkErr : new Error(upErr.message);
-        }
-        const { error: memErr } = await admin.from("role_memberships").upsert(
-          { user_id: userId, role: "leader" },
-          { onConflict: "user_id,role" },
-        );
-        if (memErr) {
-          throw linkErr instanceof Error ? linkErr : new Error(memErr.message);
-        }
+      const linkErr = await linkLeader();
+      if (linkErr) {
+        return {
+          ok: false,
+          mode: "error",
+          message: `Invito Auth inviato a ${email}. ${linkErr.message}`,
+        };
       }
 
       revalidatePath("/dashboard/staff/anagrafica-capi");
@@ -216,15 +192,20 @@ export async function inviteOrLinkLeaderAction(
       };
     }
 
-    // Senza service role: collega se Auth esiste già.
     const { data: existingId, error: rpcErr } = await supabase.rpc(
       "user_id_by_email",
       { p_email: email },
     );
-    if (rpcErr) throw new Error(rpcErr.message);
+    if (rpcErr) {
+      if (isMissingLinkRpc(rpcErr.message)) {
+        return { ok: false, mode: "error", message: RPC_SQL_MESSAGE };
+      }
+      throw new Error(rpcErr.message);
+    }
 
     if (existingId) {
-      await linkLeader();
+      const linkErr = await linkLeader();
+      if (linkErr) return linkErr;
       revalidatePath("/dashboard/staff/anagrafica-capi");
       return {
         ok: true,
@@ -236,17 +217,14 @@ export async function inviteOrLinkLeaderAction(
     return {
       ok: false,
       mode: "needs_auth",
-      message:
-        "Nessuna service role sul server e utente assente in Auth. Invita l'utente da Supabase Authentication, poi riesegui «Collega capo» con la stessa email.",
-      sqlHint,
+      message: NO_SERVICE_ROLE_MESSAGE,
     };
   } catch (e) {
-    return {
-      ok: false,
-      mode: "error",
-      message: e instanceof Error ? e.message : "Errore imprevisto.",
-      sqlHint,
-    };
+    const message = e instanceof Error ? e.message : "Errore imprevisto.";
+    if (isMissingLinkRpc(message)) {
+      return { ok: false, mode: "error", message: RPC_SQL_MESSAGE };
+    }
+    return { ok: false, mode: "error", message };
   }
 }
 
@@ -265,7 +243,6 @@ export async function updateLeaderGroupRoleAction(
     return { ok: false, message: "Capo non indicato." };
   }
 
-  // Verifica peer stesso gruppo (RLS + check app).
   const { data: peer } = await supabase
     .from("profiles")
     .select("id, unit_id, role")
@@ -287,6 +264,7 @@ export async function updateLeaderGroupRoleAction(
 
   revalidatePath("/dashboard/staff/anagrafica-capi");
   revalidatePath("/dashboard/staff/unita");
+  revalidatePath("/dashboard/staff/profilo");
   void unit;
   return { ok: true, message: "Incarico aggiornato." };
 }

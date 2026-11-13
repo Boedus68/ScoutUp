@@ -5,7 +5,8 @@ import {
   updateOwnProfileAction,
   type UpdateProfileResult,
 } from "@/app/dashboard/profilo-actions";
-import type { ProfileGender } from "@/lib/types";
+import { groupRoleLabel, groupRoleOptions } from "@/lib/labels";
+import type { CocaGroupRole, ProfileGender } from "@/lib/types";
 
 type ProfileEditFormProps = {
   firstName: string;
@@ -14,6 +15,8 @@ type ProfileEditFormProps = {
   address: string;
   email: string;
   gender: ProfileGender | null;
+  groupRole?: CocaGroupRole | null;
+  showGroupRole?: boolean;
 };
 
 export function ProfileEditForm({
@@ -23,6 +26,8 @@ export function ProfileEditForm({
   address,
   email,
   gender,
+  groupRole = null,
+  showGroupRole = false,
 }: ProfileEditFormProps) {
   const [pending, startTransition] = useTransition();
   const [result, setResult] = useState<UpdateProfileResult | null>(null);
@@ -97,6 +102,24 @@ export function ProfileEditForm({
           autoComplete="street-address"
         />
       </label>
+
+      {showGroupRole ? (
+        <label className="block text-sm">
+          <span className="mb-1 block font-medium">Incarico in Co.Ca.</span>
+          <select
+            name="group_role"
+            defaultValue={groupRole ?? ""}
+            className="w-full rounded-md border border-[var(--border)] px-3 py-2"
+          >
+            <option value="">— nessuno —</option>
+            {groupRoleOptions.map((role) => (
+              <option key={role} value={role}>
+                {groupRoleLabel[role]}
+              </option>
+            ))}
+          </select>
+        </label>
+      ) : null}
 
       <label className="block text-sm">
         <span className="mb-1 block font-medium">Sesso (etichette UI)</span>

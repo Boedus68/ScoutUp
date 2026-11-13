@@ -22,6 +22,28 @@ export async function createEventAction(formData: FormData) {
     throw new Error("Il profilo capo non ha un'unità assegnata.");
   }
 
+  const fields = parseEventFields(formData);
+
+  const { data, error } = await supabase
+    .from("events")
+    .insert({
+      unit_id: staffUnitId(profile),
+      ...fields,
+      created_by: profile.id,
+    })
+    .select("id")
+    .single();
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  revalidatePath("/dashboard/staff");
+  revalidatePath("/dashboard/staff/calendario");
+  redirect(`/dashboard/staff/events/${data.id}/presenze`);
+}
+
+function parseEventFields(formData: FormData) {
   const title = String(formData.get("title") ?? "").trim();
   const startsAt = String(formData.get("starts_at") ?? "").trim();
   const endsAtRaw = String(formData.get("ends_at") ?? "").trim();
@@ -41,22 +63,39 @@ export async function createEventAction(formData: FormData) {
     throw new Error("Quota non valida.");
   }
 
-  const { data, error } = await supabase
+  return {
+    title,
+    starts_at: new Date(startsAt).toISOString(),
+    ends_at: endsAtRaw ? new Date(endsAtRaw).toISOString() : null,
+    location: location || null,
+    description: description || null,
+    event_type,
+    fee_amount,
+    equipment_list: equipmentList || null,
+  };
+}
+
+export async function updateEventAction(formData: FormData) {
+  const { profile, supabase } = await requireRole(["leader"]);
+  const eventId = String(formData.get("event_id") ?? "").trim();
+  if (!eventId) {
+    throw new Error("Evento non indicato.");
+  }
+
+  const { data: existing } = await supabase
     .from("events")
-    .insert({
-      unit_id: staffUnitId(profile),
-      title,
-      starts_at: new Date(startsAt).toISOString(),
-      ends_at: endsAtRaw ? new Date(endsAtRaw).toISOString() : null,
-      location: location || null,
-      description: description || null,
-      event_type,
-      fee_amount,
-      equipment_list: equipmentList || null,
-      created_by: profile.id,
-    })
-    .select("id")
-    .single();
+    .select("id, unit_id, created_by")
+    .eq("id", eventId)
+    .maybeSingle();
+
+  if (!existing) {
+    throw new Error("Evento non trovato o non modificabile.");
+  }
+
+  const { error } = await supabase
+    .from("events")
+    .update(parseEventFields(formData))
+    .eq("id", eventId);
 
   if (error) {
     throw new Error(error.message);
@@ -64,7 +103,27 @@ export async function createEventAction(formData: FormData) {
 
   revalidatePath("/dashboard/staff");
   revalidatePath("/dashboard/staff/calendario");
-  redirect(`/dashboard/staff/events/${data.id}/presenze`);
+  revalidatePath(`/dashboard/staff/events/${eventId}/presenze`);
+  revalidatePath(`/dashboard/staff/events/${eventId}/modifica`);
+  void profile;
+  redirect(`/dashboard/staff/events/${eventId}/presenze`);
+}
+
+export async function deleteEventAction(formData: FormData) {
+  const { supabase } = await requireRole(["leader"]);
+  const eventId = String(formData.get("event_id") ?? "").trim();
+  if (!eventId) {
+    throw new Error("Evento non indicato.");
+  }
+
+  const { error } = await supabase.from("events").delete().eq("id", eventId);
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  revalidatePath("/dashboard/staff");
+  revalidatePath("/dashboard/staff/calendario");
+  redirect("/dashboard/staff/calendario");
 }
 
 export async function saveAttendancesAction(eventId: string, formData: FormData) {
