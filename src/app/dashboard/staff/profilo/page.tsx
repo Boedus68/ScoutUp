@@ -27,6 +27,8 @@ export default async function StaffProfiloPage() {
         address={profile.address ?? ""}
         email={user?.email ?? ""}
         gender={profile.gender ?? null}
+        showGroupRole
+        groupRole={profile.group_role}
       />
     </StaffShell>
   );

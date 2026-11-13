@@ -3,7 +3,16 @@
 import { revalidatePath } from "next/cache";
 import { requireUser, effectiveRole } from "@/lib/auth";
 import { joinFullName } from "@/lib/profile-name";
-import type { ProfileGender } from "@/lib/types";
+import type { CocaGroupRole, ProfileGender } from "@/lib/types";
+
+const groupRoles = new Set<CocaGroupRole>([
+  "capo_gruppo",
+  "tesoriere",
+  "segretario",
+  "cambusiere",
+  "maestro_novizi",
+  "capo_unita",
+]);
 
 export type UpdateProfileResult = {
   ok: boolean;
@@ -27,6 +36,11 @@ export async function updateOwnProfileAction(
   const genderRaw = String(formData.get("gender") ?? "").trim();
   const gender: ProfileGender | null =
     genderRaw === "M" || genderRaw === "F" ? genderRaw : null;
+  const groupRoleRaw = String(formData.get("group_role") ?? "").trim();
+  const groupRole: CocaGroupRole | null =
+    groupRoleRaw && groupRoles.has(groupRoleRaw as CocaGroupRole)
+      ? (groupRoleRaw as CocaGroupRole)
+      : null;
 
   if (!firstName && !lastName) {
     return { ok: false, message: "Inserisci almeno nome o cognome." };
@@ -37,16 +51,30 @@ export async function updateOwnProfileAction(
     return { ok: false, message: "Nome non valido." };
   }
 
+  const patch: {
+    first_name: string | null;
+    last_name: string | null;
+    full_name: string;
+    phone: string | null;
+    address: string | null;
+    gender: ProfileGender | null;
+    group_role?: CocaGroupRole | null;
+  } = {
+    first_name: firstName || null,
+    last_name: lastName || null,
+    full_name: fullName,
+    phone,
+    address,
+    gender,
+  };
+
+  if (profile.role === "leader" || profile.active_role === "leader") {
+    patch.group_role = groupRole;
+  }
+
   const { error } = await supabase
     .from("profiles")
-    .update({
-      first_name: firstName || null,
-      last_name: lastName || null,
-      full_name: fullName,
-      phone,
-      address,
-      gender,
-    })
+    .update(patch)
     .eq("id", profile.id);
 
   if (error) {

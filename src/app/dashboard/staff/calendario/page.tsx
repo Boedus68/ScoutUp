@@ -10,6 +10,7 @@ import {
 } from "@/lib/labels";
 import type { EventType } from "@/lib/types";
 import { isCocaUnit, staffUnitId } from "@/lib/staff-unit";
+import { DeleteEventButton } from "../events/delete-event-button";
 
 export default async function StaffCalendarioPage() {
   await connection();
@@ -58,30 +59,40 @@ export default async function StaffCalendarioPage() {
             const type =
               (event.event_type as EventType | undefined) ?? "meeting";
             return (
-              <li key={event.id}>
-                <Link
-                  href={`/dashboard/staff/events/${event.id}/presenze`}
-                  className="flex flex-col gap-1 px-4 py-4 transition hover:bg-[var(--surface-muted)] sm:flex-row sm:items-center sm:justify-between"
-                >
-                  <div>
-                    <p className="font-semibold">{event.title}</p>
-                    <p className="text-sm text-[var(--muted)]">
-                      {typeLabel[type]} · {formatDateTime(event.starts_at)}
-                      {event.location ? ` · ${event.location}` : ""}
-                      {!coca && event.fee_amount != null
-                        ? ` · Quota ${formatEuro(event.fee_amount)}`
-                        : ""}
+              <li
+                key={event.id}
+                className="flex flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between"
+              >
+                <div>
+                  <p className="font-semibold">{event.title}</p>
+                  <p className="text-sm text-[var(--muted)]">
+                    {typeLabel[type]} · {formatDateTime(event.starts_at)}
+                    {event.location ? ` · ${event.location}` : ""}
+                    {!coca && event.fee_amount != null
+                      ? ` · Quota ${formatEuro(event.fee_amount)}`
+                      : ""}
+                  </p>
+                  {coca && event.description ? (
+                    <p className="mt-1 text-sm text-[var(--ink)]/80">
+                      Verbale / note: {event.description}
                     </p>
-                    {coca && event.description ? (
-                      <p className="mt-1 text-sm text-[var(--ink)]/80">
-                        Verbale / note: {event.description}
-                      </p>
-                    ) : null}
-                  </div>
-                  <span className="text-sm font-medium text-[var(--forest)]">
-                    Registro →
-                  </span>
-                </Link>
+                  ) : null}
+                </div>
+                <div className="flex flex-wrap items-center gap-3">
+                  <Link
+                    href={`/dashboard/staff/events/${event.id}/presenze`}
+                    className="text-sm font-medium text-[var(--forest)]"
+                  >
+                    Registro
+                  </Link>
+                  <Link
+                    href={`/dashboard/staff/events/${event.id}/modifica`}
+                    className="text-sm font-medium text-[var(--forest)]"
+                  >
+                    Modifica
+                  </Link>
+                  <DeleteEventButton eventId={event.id} />
+                </div>
               </li>
             );
           })

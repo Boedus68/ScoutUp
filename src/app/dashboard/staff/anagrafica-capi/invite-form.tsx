@@ -33,8 +33,8 @@ export function InviteLeaderForm({
     >
       <p className="text-sm text-[var(--muted)]">
         {canInviteViaAuth
-          ? "Invio email di invito Auth (service role server-side). Se l'utente esiste già, viene solo collegato al gruppo."
-          : "Service role non configurata: puoi collegare un capo già presente in Authentication. Altrimenti invita prima da Supabase Dashboard → Authentication → Invite user."}
+          ? "Invio email di invito Auth (service role solo server-side). Se l'utente esiste già, viene collegato con la RPC link_leader_by_email (niente INSERT JWT su role_memberships)."
+          : "Manca SUPABASE_SERVICE_ROLE_KEY sul server: l'app non può invitare un utente Auth nuovo. Collega un capo già in Authentication, oppure configura la key su Netlify (mai NEXT_PUBLIC_*)."}
       </p>
 
       <div className="grid gap-3 sm:grid-cols-2">
@@ -131,11 +131,6 @@ export function InviteLeaderForm({
           role="status"
         >
           <p>{result.message}</p>
-          {result.sqlHint ? (
-            <pre className="mt-2 overflow-x-auto whitespace-pre-wrap rounded bg-white/80 p-2 text-xs text-[var(--ink)]">
-              {result.sqlHint}
-            </pre>
-          ) : null}
         </div>
       ) : null}
     </form>
