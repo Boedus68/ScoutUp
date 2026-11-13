@@ -15,10 +15,15 @@ export function navItemsForRole(
             href: "/dashboard/staff/percorso-formativo",
             label: "Il Mio Percorso Formativo",
           },
+          {
+            href: "/dashboard/staff/anagrafica-capi",
+            label: "Anagrafica Capi",
+          },
           { href: "/dashboard/staff/bacheca", label: "Bacheca & Documenti" },
           { href: "/dashboard/staff/materiali", label: "Documenti Co.Ca." },
           { href: "/dashboard/staff/cassa", label: "Cassa di Gruppo" },
           { href: "/dashboard/staff/unita", label: "Comunità Capi" },
+          { href: "/dashboard/staff/profilo", label: "Il mio profilo" },
         ];
       }
       return [
@@ -35,6 +40,7 @@ export function navItemsForRole(
           href: "/dashboard/staff/fascicolo-sicurezza",
           label: "Fascicolo sicurezza",
         },
+        { href: "/dashboard/staff/profilo", label: "Il mio profilo" },
       ];
     case "parent":
       return [
@@ -43,6 +49,7 @@ export function navItemsForRole(
         { href: "/dashboard/parent/quote", label: "Quote" },
         { href: "/dashboard/parent/sanitaria", label: "Scheda sanitaria" },
         { href: "/dashboard/parent/anagrafica", label: "Anagrafica" },
+        { href: "/dashboard/parent/profilo", label: "Il mio profilo" },
       ];
     case "member":
       return [

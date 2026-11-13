@@ -1,0 +1,79 @@
+"use server";
+
+import { revalidatePath } from "next/cache";
+import { requireUser, effectiveRole } from "@/lib/auth";
+import { joinFullName } from "@/lib/profile-name";
+import type { ProfileGender } from "@/lib/types";
+
+export type UpdateProfileResult = {
+  ok: boolean;
+  message: string;
+  emailNotice?: string;
+};
+
+export async function updateOwnProfileAction(
+  formData: FormData,
+): Promise<UpdateProfileResult> {
+  const { user, profile, supabase } = await requireUser();
+  if (!profile || !user) {
+    return { ok: false, message: "Sessione non valida." };
+  }
+
+  const firstName = String(formData.get("first_name") ?? "").trim();
+  const lastName = String(formData.get("last_name") ?? "").trim();
+  const phone = String(formData.get("phone") ?? "").trim() || null;
+  const address = String(formData.get("address") ?? "").trim() || null;
+  const email = String(formData.get("email") ?? "").trim().toLowerCase();
+  const genderRaw = String(formData.get("gender") ?? "").trim();
+  const gender: ProfileGender | null =
+    genderRaw === "M" || genderRaw === "F" ? genderRaw : null;
+
+  if (!firstName && !lastName) {
+    return { ok: false, message: "Inserisci almeno nome o cognome." };
+  }
+
+  const fullName = joinFullName(firstName, lastName);
+  if (!fullName) {
+    return { ok: false, message: "Nome non valido." };
+  }
+
+  const { error } = await supabase
+    .from("profiles")
+    .update({
+      first_name: firstName || null,
+      last_name: lastName || null,
+      full_name: fullName,
+      phone,
+      address,
+      gender,
+    })
+    .eq("id", profile.id);
+
+  if (error) {
+    return { ok: false, message: error.message };
+  }
+
+  let emailNotice: string | undefined;
+  const currentEmail = (user.email ?? "").toLowerCase();
+  if (email && email !== currentEmail) {
+    const { error: authErr } = await supabase.auth.updateUser({ email });
+    if (authErr) {
+      emailNotice = `Profilo salvato, ma email Auth non aggiornata: ${authErr.message}`;
+    } else {
+      emailNotice =
+        "Profilo salvato. Controlla la casella per confermare la nuova email (Auth).";
+    }
+  }
+
+  const role = effectiveRole(profile);
+  revalidatePath("/dashboard/staff/profilo");
+  revalidatePath("/dashboard/parent/profilo");
+  revalidatePath("/dashboard/member/profilo");
+  revalidatePath(role === "leader" ? "/dashboard/staff" : `/dashboard/${role}`);
+
+  return {
+    ok: true,
+    message: "Profilo aggiornato.",
+    emailNotice,
+  };
+}
